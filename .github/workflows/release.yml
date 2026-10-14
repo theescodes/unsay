@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  # release-please updates the release PR on every push to main, and creates the release once
+  # that PR is merged.
+  push:
+    branches: [main]
+
+# Least privilege: each job below asks for exactly what it needs.
+permissions:
+  contents: read
+
+# One run at a time, never cancelled: a release stopped halfway is worse than a late one.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+
+    steps:
+      # The release app's token, not GITHUB_TOKEN: a PR opened with GITHUB_TOKEN never starts CI,
+      # so the release PR would wait forever for the required `ci` check. The app is also the only
+      # actor the tag ruleset lets create v* tags.
+      - uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        id: app-token
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      # release-please-config.json makes the release a draft whose tag exists right away, so the
+      # files can be attached before it is published and becomes immutable.
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: release
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      # The build below checks out this run's commit. That is the release commit unless an earlier
+      # run failed before releasing; then stop rather than ship newer commits under an older tag.
+      - name: Check the release commit is this run's commit
+        if: steps.release.outputs.release_created == 'true' && steps.release.outputs.sha != github.sha
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          echo "::error::The release is tagged at $RELEASE_SHA, but this run is for $GITHUB_SHA."
+          echo "::error::Nothing was built or published; the draft release is left as it is."
+          exit 1
+
+  # The full CI suite on the release commit, which also packs the zip.
+  build:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      release: true
+
+  publish:
+    needs: [release-please, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Signing and writing to the release happen here, away from the build job, which runs
+    # `npm ci` and with it code from every dependency.
+    permissions:
+      contents: write # attach the files to the draft release and publish it
+      id-token: write # sign the provenance attestation through Sigstore
+      attestations: write # store the attestation with the repository
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.release-please.outputs.tag }}
+      VERSION: ${{ needs.release-please.outputs.version }}
+      ZIP: unsay-${{ needs.release-please.outputs.version }}-chrome.zip
+
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: extension
+          path: dist
+
+      # WXT takes the manifest version from package.json, which the release PR bumped. A zip with
+      # any other version must never be published under this tag.
+      - name: Check the zip's version
+        run: |
+          actual=$(unzip -p "dist/$ZIP" manifest.json | jq -r .version)
+          if [ "$actual" != "$VERSION" ]; then
+            echo "::error::$ZIP has version '$actual' in its manifest, expected $VERSION"
+            exit 1
+          fi
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        id: attest
+        with:
+          subject-path: dist/${{ env.ZIP }}
+
+      # The bundle lets people verify without GitHub's attestation API, and it is what OpenSSF
+      # Scorecard looks for on releases.
+      - name: Write the checksums and the attestation bundle
+        working-directory: dist
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: |
+          sha256sum "$ZIP" > SHA256SUMS
+          cp "$BUNDLE" "$ZIP.sigstore.json"
+
+      # Files first, then publish: once published, immutable releases lock the files and the tag.
+      # --clobber keeps "Re-run failed jobs" working while the release is still a draft.
+      - name: Publish the release
+        working-directory: dist
+        run: |
+          gh release upload "$TAG" "$ZIP" SHA256SUMS "$ZIP.sigstore.json" --clobber
+          gh release edit "$TAG" --draft=false

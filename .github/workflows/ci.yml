@@ -9,14 +9,23 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  # release.yml runs this same suite on the release commit and publishes the zip it packs.
+  workflow_call:
+    inputs:
+      release:
+        description: Also pack the zip and upload it for release.yml to publish
+        type: boolean
+        default: false
 
 # Least privilege: this workflow only reads the repo.
 permissions:
   contents: read
 
-# A new push to the same PR makes the running check obsolete; main always finishes.
+# A new push to the same PR makes the running check obsolete; main always finishes. When
+# release.yml calls this file, github.workflow is the caller's name, so a release build gets its
+# own group and never queues behind main's push run.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
@@ -50,4 +59,17 @@ jobs:
 
       - run: npm run test
 
-      - run: npm run build
+      - if: ${{ !inputs.release }}
+        run: npm run build
+
+      # `wxt zip` builds first, then packs the extension for release.yml to publish.
+      - if: ${{ inputs.release }}
+        run: npm run zip
+
+      - if: ${{ inputs.release }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: extension
+          path: .output/*-chrome.zip
+          if-no-files-found: error
+          retention-days: 7

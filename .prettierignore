@@ -9,6 +9,10 @@ bun.lockb
 /.output/
 /.wxt/
 
+# Written by release-please (it writes the manifest without indentation)
+CHANGELOG.md
+.release-please-manifest.json
+
 # Copied verbatim from the GPL
 LICENSE
 
