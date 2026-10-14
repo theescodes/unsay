@@ -71,5 +71,7 @@ jobs:
         with:
           name: extension
           path: .output/*-chrome.zip
+          # .output/ starts with a dot, and upload-artifact skips hidden paths unless told otherwise.
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
