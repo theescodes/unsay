@@ -3,6 +3,7 @@
 # Unsay
 
 [![CI](https://github.com/theescodes/unsay/actions/workflows/ci.yml/badge.svg)](https://github.com/theescodes/unsay/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/theescodes/unsay)](https://github.com/theescodes/unsay/releases/latest)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/theescodes/unsay/badge)](https://scorecard.dev/viewer/?uri=github.com/theescodes/unsay)
 [![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue)](LICENSE)
 
@@ -11,7 +12,7 @@ claude.ai, sends nothing anywhere else.
 
 > **Status: early development.** Not in the Chrome Web Store yet. The panel works end to end and
 > has deleted real chats in testing, but it is young: if you try it, try it on throwaway chats
-> first. Follow the repo for the first release.
+> first.
 >
 > Not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic.
 
@@ -31,8 +32,8 @@ loaded in the list, and there are no filters. Unsay adds a panel on claude.ai th
 
 The extensions in the store that do this are closed source, and some lock bulk delete behind a
 paid tier. A tool that deletes your data should be one you can read. This one is GPL-3.0, ships
-unminified, and every release will be built in public CI from a tagged commit, with a build
-attestation, so you can check that the store package matches the source.
+unminified, and every release is built in public CI from a tagged commit, with a build
+attestation, so you can check that what you install matches the source.
 
 ## Privacy
 
@@ -50,6 +51,30 @@ attestation, so you can check that the store package matches the source.
 
 That is the whole list. Any new permission has to be added to this table and justified in the
 pull request that adds it.
+
+## Install from a release
+
+1. Download `unsay-X.Y.Z-chrome.zip` from the
+   [latest release](https://github.com/theescodes/unsay/releases/latest) and unzip it.
+2. Open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and select the
+   unzipped folder. Open claude.ai and click the toolbar icon.
+
+Chrome doesn't update an unpacked extension: to update, unzip the next release over the folder
+and click the reload icon on the extension's card.
+
+### Check what you install
+
+Each release zip is built by the [release workflow](.github/workflows/release.yml) from the
+tagged commit and comes with a signed build attestation. With the GitHub CLI:
+
+```sh
+gh attestation verify unsay-X.Y.Z-chrome.zip --repo theescodes/unsay
+```
+
+This confirms the zip was built from that commit by that workflow, in public CI. Releases are
+immutable: once published, their files and tag can't be changed. The release also carries
+`SHA256SUMS` and the attestation bundle (`.sigstore.json`), for checking with
+`gh attestation verify … --bundle` without GitHub's attestation API.
 
 ## Install from source
 

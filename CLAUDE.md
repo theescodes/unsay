@@ -54,6 +54,10 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 - The pre-commit hook (lefthook) runs prettier, `npm run check` and eslint --fix. Don't bypass it
   with `--no-verify` unless the user explicitly says so.
 - CI (`.github/workflows/ci.yml`) is the source of truth: check, lint, dep:check, test, build.
+  `release.yml` calls it on the release commit; release-only steps stay behind `inputs.release`.
+- Releases come from release-please: merging its release PR publishes the GitHub release (draft,
+  zip + attestation attached, then published and immutable). Never create `v*` tags or edit
+  `CHANGELOG.md` by hand.
 
 ## Commands
 

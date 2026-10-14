@@ -11,6 +11,10 @@ Please use GitHub's **private vulnerability reporting** on this repository (Secu
 You'll get an answer within a few days. Fixes ship as a new release and the advisory is published
 once the store has the fixed version.
 
+## Supported versions
+
+Only the latest release gets fixes.
+
 ## In scope
 
 - Anything that could delete a chat the user did not select, skip the review/confirmation step,
@@ -18,7 +22,7 @@ once the store has the fixed version.
 - Any data (chat titles, IDs, session cookies) leaving the browser, or reaching an origin other
   than claude.ai.
 - Permission creep: a build requesting more than the permissions listed in the README.
-- A store package that does not match the tagged source and its build attestation.
+- A release zip or store package that does not match the tagged source and its build attestation.
 - Supply-chain problems in the dependencies or the release workflow.
 
 ## Out of scope

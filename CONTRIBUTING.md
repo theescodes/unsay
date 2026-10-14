@@ -61,6 +61,24 @@ be merged.
   rather than squashing everything into one.
 - Fill in the pull request checklist. CI has to pass before anything is merged.
 
+## Releases
+
+Releases come from [release-please](https://github.com/googleapis/release-please), which reads the
+commit messages:
+
+- It keeps a release pull request open that bumps the version in `package.json` and adds the new
+  entries to `CHANGELOG.md`. Merging that pull request is the decision to release.
+- The [release workflow](.github/workflows/release.yml) then runs the full CI on the release
+  commit, packs the zip, attests it, attaches it to the draft release with `SHA256SUMS` and
+  publishes it. Published releases are immutable.
+- Only the release app creates `v*` tags; a tag ruleset blocks everyone else from creating, moving
+  or deleting them. Don't tag by hand, and don't edit `CHANGELOG.md` by hand.
+- While the version is `0.x`, `feat` bumps the minor version, `fix` the patch, and a breaking change
+  also only the minor. `1.0.0` comes with the Chrome Web Store launch, through a
+  `Release-As: 1.0.0` footer in a commit.
+- If publishing fails, use "Re-run failed jobs": the draft release and its tag stay in place until
+  it goes through.
+
 ## When claude.ai changes its API
 
 The extension stops instead of guessing, and the error screen's "Technical details" name the
