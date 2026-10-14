@@ -1,0 +1,43 @@
+{
+	"extraKnownMarketplaces": {
+		"svelte": {
+			"source": {
+				"source": "github",
+				"repo": "sveltejs/ai-tools"
+			}
+		}
+	},
+	"enabledPlugins": {
+		"svelte@svelte": true
+	},
+	"permissions": {
+		"deny": [
+			"Bash(rm -rf *)",
+			"Bash(rm -fr *)",
+			"Bash(sudo *)",
+			"Bash(git push --force*)",
+			"Bash(git push -f*)",
+			"Bash(git push * --force*)",
+			"Bash(git push * -f*)",
+			"Bash(git reset --hard*)",
+			"Bash(git clean -f*)",
+			"Bash(git branch -D *)",
+			"Bash(git checkout -- *)",
+			"Bash(git stash drop*)",
+			"Bash(git stash clear*)",
+			"Bash(* --no-verify*)",
+			"Bash(* --no-gpg-sign*)",
+			"Bash(cat .env*)",
+			"Bash(gh repo delete*)",
+			"Read(./.env)",
+			"Read(./.env.submit)"
+		],
+		"ask": [
+			"Bash(gh pr merge*)",
+			"Bash(* wxt submit*)",
+			"Bash(gh release create*)",
+			"Edit(./.env*)"
+		],
+		"disableBypassPermissionsMode": "disable"
+	}
+}

@@ -1,0 +1,34 @@
+node_modules
+
+# WXT output and generated types
+.output
+.wxt
+stats.html
+stats-*.json
+web-ext.config.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+
+# svelte-check --incremental state (SvelteKit repos keep it under .svelte-kit/)
+.svelte-check
+# ESLint
+.eslintcache
+# Vitest
+/coverage/
+/.vitest/
+# Playwright
+test-results
+/playwright-report/
+# Claude Code (project-local tooling state)
+.claude/settings.local.json
+.claude/worktrees/
+
+# Private notes for Claude Code sessions (other projects, local setup). Never committed.
+CLAUDE.local.md

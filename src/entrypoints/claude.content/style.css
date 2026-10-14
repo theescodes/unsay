@@ -1,0 +1,86 @@
+@import 'tailwindcss';
+
+/*
+ * Everything here renders inside a shadow root on claude.ai. claude.ai owns
+ * :root and <html>, so the tokens hang off :host (light) and the panel's own
+ * .dark wrapper (dark), never :root.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Colour tokens: navy and sea foam with one orange signal.
+ *
+ *   signal       #FF6B2C in both schemes: surfaces, lines, large shapes. Never
+ *                text — it is 2.5:1 on the light background.
+ *   signal-ink   the accent for text and the focus ring: #B93A0A light,
+ *                #FF8A55 dark.
+ *   on-signal    what sits on a signal surface: the ink colour, not white.
+ */
+:host {
+	--bg: #eef3f2;
+	--bg2: #e4eceb;
+	--surface: #f8fbfa;
+	--ink: #0b2230;
+	--muted: #4a6470;
+	--line: rgba(11, 34, 48, 0.14);
+	--line-strong: rgba(11, 34, 48, 0.5);
+	--signal: #ff6b2c;
+	--signal-ink: #b93a0a;
+	--on-signal: #0b2230;
+	--ok: #15803d;
+	--shadow: rgba(11, 34, 48, 0.28);
+}
+
+.dark {
+	--bg: #0a1c26;
+	--bg2: #0d2330;
+	--surface: #10293a;
+	--ink: #e9f0f2;
+	--muted: #9bb0b8;
+	--line: rgba(233, 240, 242, 0.12);
+	--line-strong: rgba(233, 240, 242, 0.45);
+	--signal: #ff6b2c;
+	--signal-ink: #ff8a55;
+	--on-signal: #0a1c26;
+	--ok: #4ade80;
+	--shadow: rgba(0, 0, 0, 0.6);
+}
+
+@theme inline {
+	--color-bg: var(--bg);
+	--color-bg2: var(--bg2);
+	--color-surface: var(--surface);
+	--color-ink: var(--ink);
+	--color-muted: var(--muted);
+	--color-line: var(--line);
+	--color-line-strong: var(--line-strong);
+	--color-signal: var(--signal);
+	--color-signal-ink: var(--signal-ink);
+	--color-on-signal: var(--on-signal);
+	--color-ok: var(--ok);
+	--color-shadow: var(--shadow);
+}
+
+/*
+ * System fonts only: an @font-face declared inside a shadow root is not used,
+ * and loading fonts into claude.ai's own document is out of bounds.
+ */
+@theme {
+	--font-sans: system-ui, sans-serif;
+	--font-mono: ui-monospace, monospace;
+}
+
+:focus-visible {
+	outline: 2px solid var(--signal-ink);
+	outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}

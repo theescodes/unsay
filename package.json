@@ -1,0 +1,66 @@
+{
+	"name": "unsay",
+	"description": "Bulk-delete your claude.ai chats with filters. Open source, runs only on claude.ai, sends nothing anywhere else.",
+	"private": true,
+	"version": "0.0.1",
+	"license": "GPL-3.0-or-later",
+	"type": "module",
+	"engines": {
+		"node": "24",
+		"npm": ">=11.10.0"
+	},
+	"packageManager": "npm@11.19.0",
+	"scripts": {
+		"dev": "wxt",
+		"build": "wxt build",
+		"zip": "wxt zip",
+		"prepare": "wxt prepare || echo '' ; { [ -d .git ] && lefthook install ; } || echo ''",
+		"check": "wxt prepare && svelte-check --tsconfig ./tsconfig.json --incremental",
+		"check:watch": "wxt prepare && svelte-check --tsconfig ./tsconfig.json --watch",
+		"lint": "node scripts/lint.mjs",
+		"format": "prettier --write .",
+		"dep:check": "depcruise src --config .dependency-cruiser.cjs",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"icons": "node scripts/icons.mjs"
+	},
+	"devDependencies": {
+		"@commitlint/cli": "21.2.3",
+		"@commitlint/config-conventional": "21.2.3",
+		"@eslint/js": "10.0.1",
+		"@sveltejs/vite-plugin-svelte": "7.3.1",
+		"@tailwindcss/vite": "4.3.3",
+		"@types/node": "24.19.2",
+		"@wxt-dev/module-svelte": "2.0.5",
+		"dependency-cruiser": "18.6.0",
+		"eslint": "10.12.0",
+		"eslint-config-prettier": "10.1.8",
+		"eslint-plugin-better-tailwindcss": "4.9.0",
+		"eslint-plugin-simple-import-sort": "14.0.0",
+		"eslint-plugin-svelte": "3.23.1",
+		"globals": "17.13.0",
+		"lefthook": "2.2.1",
+		"playwright": "1.64.0",
+		"postcss": "8.5.29",
+		"prettier": "3.9.10",
+		"prettier-plugin-svelte": "4.1.1",
+		"prettier-plugin-tailwindcss": "0.8.1",
+		"svelte": "5.57.2",
+		"svelte-check": "4.7.6",
+		"tailwindcss": "4.3.3",
+		"typescript": "6.0.3",
+		"typescript-eslint": "8.71.1",
+		"vite": "8.3.4",
+		"vitest": "5.0.3",
+		"wxt": "0.21.4"
+	},
+	"allowScripts": {
+		"esbuild": true,
+		"lefthook": true,
+		"fsevents": false
+	},
+	"dependencies": {
+		"@lucide/svelte": "1.55.0",
+		"zod": "4.6.5"
+	}
+}

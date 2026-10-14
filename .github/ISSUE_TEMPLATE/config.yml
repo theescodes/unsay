@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: A chat deleted that you didn't select, or data leaving your browser
+    url: https://github.com/theescodes/unsay/security/advisories/new
+    about: Report it privately (see SECURITY.md). Please don't open a public issue for these.

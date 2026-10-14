@@ -1,0 +1,56 @@
+name: Bug report
+description: Something in Unsay doesn't work as it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time. **Please don't paste chat titles, chat contents or ids**: the
+        details below are enough, and this issue is public.
+
+        If Unsay deleted a chat you didn't select, or anything could leave your browser, report it
+        privately instead (see [SECURITY.md](https://github.com/theescodes/unsay/blob/main/SECURITY.md)).
+  - type: input
+    id: version
+    attributes:
+      label: Unsay version
+      description: chrome://extensions shows it on Unsay's card.
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 141 on macOS
+    validations:
+      required: true
+  - type: dropdown
+    id: step
+    attributes:
+      label: Where did it happen?
+      options:
+        - Loading the list
+        - Filters
+        - Review
+        - Confirm
+        - While deleting
+        - Done screen
+        - Somewhere else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: technical
+    attributes:
+      label: Technical details
+      description: >-
+        If the panel showed an error, open "Technical details" on it and paste them here. Ids are
+        already blanked out.
+      render: text

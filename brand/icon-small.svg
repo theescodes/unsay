@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+	<!--
+		icon.svg for 16 and 32 px, on a 32 grid with every edge on an even coordinate, so the
+		bubble and the minus land on whole pixels at 16 px too.
+	-->
+	<rect width="32" height="32" rx="7" fill="#ff6b2c" />
+	<path fill="#0b2230" d="M8 6h16a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-8l-6 6v-6H8a4 4 0 0 1-4-4v-8a4 4 0 0 1 4-4z" />
+	<rect x="10" y="12" width="12" height="4" rx="2" fill="#ff6b2c" />
+</svg>

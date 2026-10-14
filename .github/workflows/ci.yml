@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  # Push CI on main too, so main's own state has a status; every change still
+  # reaches main through a pull request.
+  push:
+    branches: [main]
+  # pull_request, never pull_request_target: forks must not get a token or secrets.
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: this workflow only reads the repo.
+permissions:
+  contents: read
+
+# A new push to the same PR makes the running check obsolete; main always finishes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Pinned exactly, never a bare `24`: ESLint's result cache keys on the node
+  # version, so a bare major that resolves to a different patch during runner
+  # image rollouts invalidates the cache. Renovate bumps it (customManagers).
+  NODE_VERSION: '24.21.0'
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      # `prepare` runs `wxt prepare`, which generates the .wxt/ types and aliases
+      # that check, lint and dep:check resolve against.
+      - run: npm ci
+
+      - run: npm run check
+
+      - run: npm run lint
+
+      - run: npm run dep:check
+
+      - run: npm run test
+
+      - run: npm run build

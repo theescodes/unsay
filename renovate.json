@@ -1,0 +1,131 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"description": [
+		"Shared baseline (identical across the maintainer's repositories; the only differences are dependencyDashboard and the packageRules at the end whose description starts with \"Repo-specific:\"). Auto-merge is limited to the dev tooling group: Renovate merges it itself once CI is green and the 3-day release age has passed (platformAutomerge is off, so it works without GitHub auto-merge or branch protection). Everything that ships to production waits for a human."
+	],
+	"extends": ["config:recommended", ":semanticCommits"],
+	"timezone": "Europe/Berlin",
+	"prConcurrentLimit": 5,
+	"prHourlyLimit": 0,
+	"rangeStrategy": "bump",
+	"minimumReleaseAge": "3 days",
+	"internalChecksFilter": "strict",
+	"automergeStrategy": "rebase",
+	"platformAutomerge": false,
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 6am on monday"],
+		"automerge": false
+	},
+	"vulnerabilityAlerts": {
+		"enabled": true,
+		"schedule": ["at any time"],
+		"prCreation": "immediate",
+		"minimumReleaseAge": "3 days",
+		"labels": ["security"]
+	},
+	"dependencyDashboard": false,
+	"packageRules": [
+		{
+			"description": "Group dev tooling + types — auto-merge if CI is green",
+			"matchPackageNames": [
+				"/^prettier/",
+				"/^eslint/",
+				"/^@eslint\\//",
+				"typescript-eslint",
+				"globals",
+				"svelte-check",
+				"vitest",
+				"/^@vitest\\//",
+				"vitest-browser-svelte",
+				"playwright",
+				"@playwright/test",
+				"axe-core",
+				"lefthook",
+				"/^@commitlint\\//",
+				"dependency-cruiser",
+				"@types/node"
+			],
+			"matchUpdateTypes": ["patch", "minor"],
+			"groupName": "dev tooling",
+			"automerge": true
+		},
+		{
+			"description": "@types/node follows the Node 24 runtime, not npm's latest tag",
+			"matchPackageNames": ["@types/node"],
+			"allowedVersions": "24.x"
+		},
+		{
+			"description": "Group framework deps — single PR, manual review (a superset: packages a repo does not use simply never match)",
+			"matchPackageNames": [
+				"@sveltejs/kit",
+				"@sveltejs/adapter-node",
+				"@sveltejs/vite-plugin-svelte",
+				"svelte",
+				"drizzle-orm",
+				"drizzle-kit",
+				"bits-ui",
+				"sveltekit-superforms",
+				"svelte-meta-tags",
+				"tailwindcss",
+				"@tailwindcss/vite",
+				"vite",
+				"typescript",
+				"zod",
+				"postgres",
+				"@inlang/paraglide-js",
+				"@inlang/plugin-message-format"
+			],
+			"matchUpdateTypes": ["patch", "minor"],
+			"groupName": "framework deps",
+			"automerge": false,
+			"labels": ["review-required"]
+		},
+		{
+			"description": "Major bumps always get their own PR, never auto-merge",
+			"matchUpdateTypes": ["major"],
+			"automerge": false,
+			"labels": ["major-bump", "review-required"]
+		},
+		{
+			"description": "Pin GitHub Actions to commit SHAs (security best practice)",
+			"matchManagers": ["github-actions"],
+			"pinDigests": true
+		},
+		{
+			"description": "engines (node/npm) are floors, not versions to track: npm >= 11.10 is what the min-release-age gate needs, and the runtime Node version is pinned by the Dockerfile image and CI's NODE_VERSION, so a bare major is on purpose. Bumping them to the newest release breaks CI's engine-strict install (EBADENGINE).",
+			"matchDepTypes": ["engines"],
+			"enabled": false
+		},
+		{
+			"description": "packageManager documents the npm bundled with the pinned Node; it moves with Node, not on its own (CI uses the bundled npm).",
+			"matchDepTypes": ["packageManager"],
+			"enabled": false
+		},
+		{
+			"description": "Node: CI's NODE_VERSION and the Docker node image (where there is one) move together in one PR, so production runs what CI tested; never auto-merged.",
+			"matchDepNames": ["node"],
+			"groupName": "node",
+			"automerge": false,
+			"labels": ["review-required"]
+		},
+		{
+			"description": "Repo-specific: WXT, its modules and postcss shape the shipped extension bundle, so they join the framework group (single PR, manual review)",
+			"matchPackageNames": ["wxt", "/^@wxt-dev\\//", "postcss"],
+			"matchUpdateTypes": ["patch", "minor"],
+			"groupName": "framework deps",
+			"automerge": false,
+			"labels": ["review-required"]
+		}
+	],
+	"customManagers": [
+		{
+			"customType": "regex",
+			"description": "CI's NODE_VERSION env, grouped with the Docker node image by the node rule",
+			"managerFilePatterns": ["/^\\.github/workflows/ci\\.yml$/"],
+			"matchStrings": ["NODE_VERSION: '(?<currentValue>\\d+\\.\\d+\\.\\d+)'"],
+			"depNameTemplate": "node",
+			"datasourceTemplate": "node-version"
+		}
+	]
+}

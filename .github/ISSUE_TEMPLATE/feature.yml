@@ -1,0 +1,22 @@
+name: Idea
+description: Suggest a filter, an improvement or something new.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: The situation and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Unsay help?
+      description: Your idea, if you have one. Rough is fine.
+  - type: markdown
+    attributes:
+      value: |
+        Unsay stays small on purpose: it only talks to claude.ai, asks for no extra permissions and
+        never deletes without a review and a typed confirmation. Ideas that need more than that are
+        still welcome, but may not fit.
