@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/theescodes/unsay/compare/v0.1.0...v0.1.1) (2026-10-15)
+
+
+### Bug Fixes
+
+* **ui:** say what claude.ai does when the open chat is deleted ([addb275](https://github.com/theescodes/unsay/commit/addb275e89ec7039aaec24313f209d44ffe35fdf))
+
 ## 0.1.0 (2026-10-14)
 
 
