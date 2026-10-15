@@ -8,9 +8,10 @@
 
 	interface Props {
 		session: SweepSession;
+		ondiagnostics: () => void;
 	}
 
-	let { session }: Props = $props();
+	let { session, ondiagnostics }: Props = $props();
 
 	const AGES: [days: number | null, label: string][] = [
 		[null, 'Any time'],
@@ -132,6 +133,7 @@
 	</p>
 
 	{#snippet actions()}
+		<Button variant="ghost" class="me-auto" onclick={ondiagnostics}>Diagnostics</Button>
 		<Button disabled={session.matches.length === 0} onclick={() => session.review()}>
 			Review {count(session.matches.length, 'chat')}
 		</Button>

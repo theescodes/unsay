@@ -240,6 +240,14 @@ export class ClaudeTab {
 		await this.panel.getByRole('button', { name: `Delete ${chats}` }).click();
 	}
 
+	/** Opens the Diagnostics view from the current step and returns the report it shows. */
+	async diagnostics(): Promise<Record<string, unknown>> {
+		await this.panel.getByRole('button', { name: 'Diagnostics' }).click();
+		await expect(this.heading('Diagnostics')).toBeVisible();
+		const text = await this.panel.getByRole('textbox', { name: 'Diagnostics' }).inputValue();
+		return JSON.parse(text) as Record<string, unknown>;
+	}
+
 	unexpectedErrors(): string[] {
 		return this.#errors.filter(
 			(text) => !this.#allowedErrors.some((pattern) => pattern.test(text))

@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createClaudeApi } from '@/lib/core/api';
+import { DiagnosticsRecorder } from '@/lib/core/diagnostics';
 import { FakeClaude } from '@/lib/core/testing/fake-claude';
 import { conversation, id, NOW, ORG, organization } from '@/lib/core/testing/fixtures';
 
@@ -26,11 +27,13 @@ function setup(options: Setup = {}) {
 		options.orgs ?? [organization()],
 		options.chats ?? { [ORG]: range(1, 5).map((n) => conversation(n)) }
 	);
+	const recorder = new DiagnosticsRecorder();
 	const session = new SweepSession({
-		api: createClaudeApi(options.fetch?.(fake) ?? fake.fetch),
+		api: createClaudeApi(recorder.wrap(options.fetch?.(fake) ?? fake.fetch)),
 		activeOrgId: () => (options.active === undefined ? ORG : options.active),
 		openChatId: () => options.openChat ?? null,
-		now: () => NOW.getTime()
+		now: () => NOW.getTime(),
+		diagnostics: { recorder, version: '0.1.1', browser: 'Google Chrome 141, macOS' }
 	});
 	return { fake, session };
 }
@@ -329,5 +332,81 @@ describe('run', () => {
 		await session.refresh();
 		expect(session.step.kind).toBe('filter');
 		expect(session.conversations).toEqual([]);
+	});
+});
+
+describe('diagnostics', () => {
+	const PROJECT = id(8_000);
+
+	it('reports counts, flags and shapes, never a title, an id or a name', async () => {
+		const { session } = setup({
+			orgs: [
+				organization({ name: 'SECRET org' }),
+				organization({ uuid: API_ORG, name: 'SECRET api org', capabilities: ['api'] })
+			],
+			chats: {
+				[ORG]: range(1, 6).map((n) =>
+					conversation(n, {
+						name: `SECRET chat ${n}`,
+						is_starred: n === 6,
+						project: n <= 2 ? { uuid: PROJECT, name: 'SECRET project' } : null
+					})
+				)
+			}
+		});
+		await session.refresh();
+		session.filters.titleContains = 'chat 1';
+		session.review();
+		session.toConfirm();
+		await session.run();
+
+		const text = session.diagnostics();
+		expect(text).not.toMatch(/SECRET|example\.com/);
+		expect(text).not.toMatch(/[0-9a-f]{8}-[0-9a-f]{4}-/i);
+		expect(JSON.parse(text)).toMatchObject({
+			unsay: '0.1.1',
+			browser: 'Google Chrome 141, macOS',
+			date: '2026-10-14',
+			accounts: [
+				{ capabilities: ['claude_max', 'chat'], shown: true, selected: true, lastActive: true },
+				{ capabilities: ['api'], shown: false, selected: false, lastActive: false }
+			],
+			chats: {
+				loaded: 6,
+				starred: 1,
+				projects: 1,
+				inProjects: 2,
+				projectUnknown: 0,
+				newestFirst: true
+			},
+			lastRun: { deleted: 1, failed: 0, cancelled: false },
+			lastError: null,
+			requests: {
+				'POST /organizations/…/chat_conversations/delete_many': { 200: 1 }
+			},
+			answers: {
+				'GET /organizations/…/chat_conversations': {
+					items: 'object 5',
+					fields: { name: 'string 5', project: 'null 4, object 1', 'project.name': 'string 1' }
+				}
+			}
+		});
+	});
+
+	it('says no list is loaded yet', () => {
+		const { session } = setup();
+		expect(JSON.parse(session.diagnostics())).toMatchObject({ accounts: [], chats: null });
+	});
+
+	it('keeps the latest error after a try again that worked', async () => {
+		const { fake, session } = setup();
+		fake.fail('GET', /\/chat_conversations$/, 503);
+		await session.refresh();
+		await session.refresh();
+		expect(session.step.kind).toBe('filter');
+		expect(JSON.parse(session.diagnostics())).toMatchObject({
+			lastError: '503 /organizations/…/chat_conversations?limit=100&offset=0',
+			requests: { 'GET /organizations/…/chat_conversations': { 200: 1, 503: 1 } }
+		});
 	});
 });
