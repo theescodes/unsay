@@ -64,6 +64,6 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "1.55.0",
-		"zod": "4.6.6"
+		"zod": "4.6.7"
 	}
 }
