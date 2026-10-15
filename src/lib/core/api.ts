@@ -95,8 +95,8 @@ export function createClaudeApi(
 		},
 
 		async deleteOne(orgId, id) {
-			// The JSON-string body is copied from the MIT console script this API knowledge comes
-			// from; this endpoint is not verified against claude.ai yet (docs/api-notes.md).
+			// The JSON-string body comes from the MIT console script this API knowledge started
+			// from; claude.ai accepted it on 2026-10-15 (docs/api-notes.md).
 			await request(`/organizations/${orgId}/chat_conversations/${id}`, {
 				method: 'DELETE',
 				body: JSON.stringify(id)

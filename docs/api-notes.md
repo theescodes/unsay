@@ -22,14 +22,14 @@ All under `https://claude.ai/api`, same origin as the page, authenticated by the
 (`credentials: 'include'`). A content script's own `fetch` (isolated world, no page script
 involved) gets the same session: verified on 2026-10-14 when the panel loaded the real list.
 
-| Request                                                                       | Status         |
-| ----------------------------------------------------------------------------- | -------------- |
-| `GET /organizations`                                                          | observed       |
-| `GET /organizations/{org}/chat_conversations?limit=100&offset=n`              | observed       |
-| `GET /organizations/{org}/chat_conversations/{uuid}`                          | observed       |
-| `GET /organizations/{org}/projects`                                           | observed       |
-| `POST /organizations/{org}/chat_conversations/delete_many`                    | observed       |
-| `DELETE /organizations/{org}/chat_conversations/{uuid}`, body `"<uuid>"` JSON | **unverified** |
+| Request                                                                       | Status   |
+| ----------------------------------------------------------------------------- | -------- |
+| `GET /organizations`                                                          | observed |
+| `GET /organizations/{org}/chat_conversations?limit=100&offset=n`              | observed |
+| `GET /organizations/{org}/chat_conversations/{uuid}`                          | observed |
+| `GET /organizations/{org}/projects`                                           | observed |
+| `POST /organizations/{org}/chat_conversations/delete_many`                    | observed |
+| `DELETE /organizations/{org}/chat_conversations/{uuid}`, body `"<uuid>"` JSON | observed |
 
 ### Organizations
 
@@ -98,16 +98,23 @@ Body `{ "conversation_uuids": [...] }`.
 
 ### Single `DELETE`
 
-Not verified: the delete test died before it reached this step. The JSON-string body is copied
-from the MIT script. The extension uses this endpoint only as a fallback for a batch that fails
-outright, and the verification re-read catches it if it doesn't work.
+Observed on 2026-10-15: the extension deletes the chat open in the tab with this request, on its
+own (see below), and on the maintainer's account that chat was gone afterwards. So the JSON-string
+body copied from the MIT script works. Status and response body were not captured; the extension
+doesn't read them and decides by re-reading the list. Apart from the open chat, it uses this
+endpoint as a fallback for a batch that fails outright.
 
 ### Deleting the open chat
 
-Deleting the chat that is open in the tab makes claude.ai react in the page (a notice that a new
-session is being started). During the delete test the page then evidently reloaded: the console
-was cleared and the script's state was gone. A content script would die the same way mid-run. So the deleter takes that chat last, alone, after everything else is
-verified (`SweepOptions.deleteLast`).
+Deleting the chat that is open in the tab makes claude.ai react in the page. On 2026-10-15, with
+the extension on the maintainer's account (claude.ai in German), claude.ai closed the chat and
+showed "Diese Sitzung ist nicht mehr verfügbar" ("This session is no longer available"). The page
+did not reload: the panel stayed open and showed the done screen.
+
+During the console-script test on 2026-10-14 the page evidently did reload: the console was
+cleared and the script's state was gone. Whether claude.ai or the console script caused that is
+unclear. A reload would end the content script mid-run, so the deleter still takes that chat
+last, alone, after everything else is verified (`SweepOptions.deleteLast`). It costs nothing.
 
 ### The sidebar lags
 
