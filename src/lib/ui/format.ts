@@ -1,4 +1,5 @@
 import type { Outcome, SweepProgress } from '@/lib/core/deleter';
+import { blankIds } from '@/lib/core/diagnostics';
 import { ApiChangedError, HttpError } from '@/lib/core/errors';
 import type { Conversation } from '@/lib/core/schemas';
 
@@ -86,13 +87,11 @@ export interface ErrorText {
 	technical: string | null;
 }
 
-const UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
-
 function technicalDetail(error: unknown): string | null {
 	if (error instanceof ApiChangedError) {
-		return `${error.path.replace(UUID_PATTERN, '…')}\n${error.detail}`;
+		return `${blankIds(error.path)}\n${error.detail}`;
 	}
-	if (error instanceof HttpError) return `${error.status} ${error.path.replace(UUID_PATTERN, '…')}`;
+	if (error instanceof HttpError) return `${error.status} ${blankIds(error.path)}`;
 	if (error instanceof Error) return `${error.name}: ${error.message}`;
 	return null;
 }
