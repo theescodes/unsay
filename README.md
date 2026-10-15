@@ -28,6 +28,9 @@ loaded in the list, and there are no filters. Unsay adds a panel on claude.ai th
 - deletes in small batches, can be cancelled, then checks that every chat is really gone;
 - gives you a CSV receipt of what was deleted.
 
+Not covered: Claude Code and Cowork sessions (claude.ai/code, claude.ai/cowork). claude.ai keeps
+them out of the chat list Unsay reads.
+
 ## Why another one
 
 The extensions in the store that do this are closed source, and some lock bulk delete behind a
