@@ -35,9 +35,9 @@ export interface SweepOptions extends Pick<RetryOptions, 'sleep' | 'random'> {
 	targets: readonly SweepTarget[];
 	allowStarred: boolean;
 	/**
-	 * The chat open in this tab, if it is among the targets. Deleting it makes claude.ai react
-	 * in the page (and may reload it, which ends this content script), so it goes last, after
-	 * everything else is verified.
+	 * The chat open in this tab, if it is among the targets. Deleting it makes claude.ai close it
+	 * in the page, and in one early test the page reloaded, which would end this content script.
+	 * So it goes last, after everything else is verified.
 	 */
 	deleteLast?: string | null;
 	/**
