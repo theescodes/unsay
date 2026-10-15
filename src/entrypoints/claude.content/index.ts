@@ -3,6 +3,7 @@ import './style.css';
 import { mount, unmount } from 'svelte';
 
 import { createClaudeApi } from '@/lib/core/api';
+import { describeBrowser, DiagnosticsRecorder, type UserAgentData } from '@/lib/core/diagnostics';
 import type { Message, ReadyReply } from '@/lib/messaging/messages';
 import Panel from '@/lib/ui/Panel.svelte';
 import { SweepSession } from '@/lib/ui/session.svelte';
@@ -15,14 +16,23 @@ export default defineContentScript({
 
 	async main(ctx) {
 		let isOpen = false;
+		// Watches Unsay's own requests to claude.ai, in memory only, for the Diagnostics view.
+		const recorder = new DiagnosticsRecorder();
+		// Not in TypeScript's DOM types yet.
+		const { userAgentData } = navigator as Navigator & { userAgentData?: UserAgentData };
 
 		// Outlives the panel: closing it mid-run doesn't stop the run.
 		const session = new SweepSession({
 			// The content script's own fetch: same origin as claude.ai, so the session cookie goes
 			// along as it does for the web app.
-			api: createClaudeApi((input, init) => fetch(input, init)),
+			api: createClaudeApi(recorder.wrap((input, init) => fetch(input, init))),
 			activeOrgId: () => document.cookie.match(/(?:^|;\s*)lastActiveOrg=([^;]+)/)?.[1] ?? null,
-			openChatId: () => location.pathname.match(/^\/chat\/([0-9a-f-]{36})(?:\/|$)/i)?.[1] ?? null
+			openChatId: () => location.pathname.match(/^\/chat\/([0-9a-f-]{36})(?:\/|$)/i)?.[1] ?? null,
+			diagnostics: {
+				recorder,
+				version: browser.runtime.getManifest().version,
+				browser: describeBrowser(userAgentData)
+			}
 		});
 
 		const ui = await createShadowRootUi(ctx, {

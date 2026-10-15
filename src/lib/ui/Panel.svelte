@@ -7,6 +7,7 @@
 	import { count } from './format';
 	import type { SweepSession } from './session.svelte';
 	import ConfirmStep from './steps/ConfirmStep.svelte';
+	import DiagnosticsStep from './steps/DiagnosticsStep.svelte';
 	import DoneStep from './steps/DoneStep.svelte';
 	import FilterStep from './steps/FilterStep.svelte';
 	import ProgressStep from './steps/ProgressStep.svelte';
@@ -20,8 +21,13 @@
 
 	let { session, onclose }: Props = $props();
 
+	/** Shown over the filter, done or error step; Back returns to it. */
+	let diagnostics = $state(false);
+	const showDiagnostics = () => (diagnostics = true);
+
 	const step = $derived(session.step);
 	const title = $derived.by(() => {
+		if (diagnostics) return 'Diagnostics';
 		switch (step.kind) {
 			case 'loading':
 				return 'Loading your chats';
@@ -73,7 +79,9 @@
 		{/if}
 	</header>
 
-	{#if step.kind === 'loading'}
+	{#if diagnostics}
+		<DiagnosticsStep {session} onback={() => (diagnostics = false)} />
+	{:else if step.kind === 'loading'}
 		<StepLayout>
 			<p class="text-sm text-muted">
 				{step.loaded > 0 ? `${count(step.loaded, 'chat')} loaded…` : 'Asking claude.ai…'}
@@ -81,7 +89,7 @@
 			<progress class="mt-3 h-2 w-full accent-signal" aria-label="Loading"></progress>
 		</StepLayout>
 	{:else if step.kind === 'filter'}
-		<FilterStep {session} />
+		<FilterStep {session} ondiagnostics={showDiagnostics} />
 	{:else if step.kind === 'review'}
 		<ReviewStep {session} />
 	{:else if step.kind === 'confirm'}
@@ -89,7 +97,7 @@
 	{:else if step.kind === 'running'}
 		<ProgressStep {session} progress={step.progress} cancelling={step.cancelling} />
 	{:else if step.kind === 'done'}
-		<DoneStep {session} result={step.result} swept={step.swept} />
+		<DoneStep {session} result={step.result} swept={step.swept} ondiagnostics={showDiagnostics} />
 	{:else}
 		<StepLayout>
 			<p class="text-sm">{step.text.detail}</p>
@@ -101,6 +109,7 @@
 				</details>
 			{/if}
 			{#snippet actions()}
+				<Button variant="ghost" class="me-auto" onclick={showDiagnostics}>Diagnostics</Button>
 				<Button onclick={() => session.refresh()}>Try again</Button>
 			{/snippet}
 		</StepLayout>

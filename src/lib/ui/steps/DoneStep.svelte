@@ -15,9 +15,10 @@
 		session: SweepSession;
 		result: SweepResult;
 		swept: Conversation[];
+		ondiagnostics: () => void;
 	}
 
-	let { session, result, swept }: Props = $props();
+	let { session, result, swept, ondiagnostics }: Props = $props();
 
 	const counts = $derived(countOutcomes(result.outcomes));
 	const lines = $derived(
@@ -56,6 +57,7 @@
 	</p>
 
 	{#snippet actions()}
+		<Button variant="ghost" class="me-auto" onclick={ondiagnostics}>Diagnostics</Button>
 		<a href={receiptUrl} download={receiptName} class={buttonClass('secondary')}>
 			<Download class="size-4" aria-hidden="true" />
 			Download receipt (CSV)

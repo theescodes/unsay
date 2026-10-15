@@ -1,7 +1,12 @@
 import { SvelteSet } from 'svelte/reactivity';
 
 import type { ClaudeApi } from '@/lib/core/api';
-import { runSweep, type SweepProgress, type SweepResult } from '@/lib/core/deleter';
+import { countOutcomes, runSweep, type SweepProgress, type SweepResult } from '@/lib/core/deleter';
+import {
+	type DiagnosticsRecorder,
+	diagnosticsReport,
+	type RecorderSnapshot
+} from '@/lib/core/diagnostics';
 import { applyFilters, DEFAULT_FILTERS, type Filters, projectsIn } from '@/lib/core/filters';
 import { chatOrganizations, type Conversation, type Organization } from '@/lib/core/schemas';
 
@@ -24,7 +29,11 @@ export interface SessionDeps {
 	openChatId: () => string | null;
 	/** Epoch milliseconds; injectable for tests. */
 	now?: () => number;
+	/** For the diagnostics: what the API's fetch went through, and where the extension runs. */
+	diagnostics?: { recorder: DiagnosticsRecorder; version: string; browser: string };
 }
+
+const NOTHING_RECORDED: RecorderSnapshot = { requests: {}, rateHeaders: [], answers: {} };
 
 const preventUnload = (event: BeforeUnloadEvent) => event.preventDefault();
 
@@ -60,6 +69,12 @@ export class SweepSession {
 	);
 
 	readonly #deps: SessionDeps;
+	// For the diagnostics only: the accounts the panel hides too, whether a list is loaded, and
+	// how the latest run and the latest error went, even after "Start over" or "Try again".
+	#allOrgs: Organization[] = [];
+	#listed = false;
+	#lastRun: SweepResult | null = null;
+	#lastError: string | null = null;
 	#started = false;
 	#load: AbortController | null = null;
 	#run: AbortController | null = null;
@@ -88,17 +103,15 @@ export class SweepSession {
 		this.step = { kind: 'loading', loaded: 0 };
 		try {
 			if (this.orgs.length === 0) {
-				const orgs = chatOrganizations(await this.#deps.api.listOrganizations(load.signal));
+				this.#allOrgs = await this.#deps.api.listOrganizations(load.signal);
+				const orgs = chatOrganizations(this.#allOrgs);
 				if (orgs.length === 0) {
-					this.step = {
-						kind: 'error',
-						text: {
-							title: 'No chats here',
-							detail: 'None of your claude.ai accounts has chats.',
-							consequence: 'Nothing was deleted.',
-							technical: null
-						}
-					};
+					this.#fail({
+						title: 'No chats here',
+						detail: 'None of your claude.ai accounts has chats.',
+						consequence: 'Nothing was deleted.',
+						technical: null
+					});
 					return;
 				}
 				this.orgs = orgs;
@@ -114,13 +127,14 @@ export class SweepSession {
 			});
 			if (this.#load !== load) return;
 			this.conversations = conversations;
+			this.#listed = true;
 			this.loadedAt = this.#deps.now?.() ?? Date.now();
 			this.step = { kind: 'filter' };
 		} catch (error) {
 			// A newer load superseded this one; its outcome is the one that counts.
 			if (this.#load !== load) return;
 			console.error('[Unsay] loading failed:', error);
-			this.step = { kind: 'error', text: describeError(error, false) };
+			this.#fail(describeError(error, false));
 		} finally {
 			if (this.#load === load) this.#load = null;
 		}
@@ -130,6 +144,7 @@ export class SweepSession {
 		if (orgId === this.orgId || this.running) return;
 		this.orgId = orgId;
 		this.conversations = [];
+		this.#listed = false;
 		this.excluded.clear();
 		void this.refresh();
 	}
@@ -185,10 +200,11 @@ export class SweepSession {
 					if (this.step.kind === 'running') this.step = { ...this.step, progress };
 				}
 			});
+			this.#lastRun = result;
 			this.step = { kind: 'done', result, swept };
 		} catch (error) {
 			console.error('[Unsay] the run failed:', error);
-			this.step = { kind: 'error', text: describeError(error, deletesStarted) };
+			this.#fail(describeError(error, deletesStarted));
 		} finally {
 			removeEventListener('beforeunload', preventUnload);
 			this.#run = null;
@@ -200,5 +216,53 @@ export class SweepSession {
 		if (this.step.kind !== 'running' || this.step.cancelling) return;
 		this.#run?.abort();
 		this.step = { ...this.step, cancelling: true };
+	}
+
+	/**
+	 * The report behind the panel's Diagnostics view, for compatibility and bug reports: counts,
+	 * flags and the shape of claude.ai's answers, never a title, an id or a name.
+	 */
+	diagnostics(): string {
+		const now = this.#deps.now?.() ?? Date.now();
+		const lastActive = this.#deps.activeOrgId();
+		const chats = this.conversations;
+		const times = chats.map((chat) => Date.parse(chat.updated_at));
+		return diagnosticsReport(
+			{
+				unsay: this.#deps.diagnostics?.version ?? 'unknown',
+				browser: this.#deps.diagnostics?.browser ?? 'unknown',
+				// A throwaway, never stored or mutated: nothing for SvelteDate to track.
+				// eslint-disable-next-line svelte/prefer-svelte-reactivity
+				date: new Date(now).toISOString().slice(0, 10),
+				chatOpenInTab: this.#deps.openChatId() !== null,
+				accounts: this.#allOrgs.map((org) => ({
+					capabilities: org.capabilities,
+					shown: this.orgs.some((shown) => shown.uuid === org.uuid),
+					selected: org.uuid === this.orgId,
+					lastActive: org.uuid === lastActive
+				})),
+				chats: this.#listed
+					? {
+							loaded: chats.length,
+							starred: this.starredCount,
+							projects: this.projects.length,
+							inProjects: chats.filter((chat) => typeof chat.project_uuid === 'string').length,
+							projectUnknown: this.unknownProjectCount,
+							newestFirst: times.every((time, i) => i === 0 || time <= (times[i - 1] as number))
+						}
+					: null,
+				lastRun: this.#lastRun && {
+					...countOutcomes(this.#lastRun.outcomes),
+					cancelled: this.#lastRun.cancelled
+				},
+				lastError: this.#lastError
+			},
+			this.#deps.diagnostics?.recorder.snapshot() ?? NOTHING_RECORDED
+		);
+	}
+
+	#fail(text: ErrorText) {
+		this.#lastError = text.technical ?? text.title;
+		this.step = { kind: 'error', text };
 	}
 }

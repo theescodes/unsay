@@ -55,6 +55,10 @@ for (const mode of ['light', 'dark'] as const) {
 			await expectShadowRootCss(claude);
 			await expectAccessible(claude, 'filter');
 
+			await claude.diagnostics();
+			await expectAccessible(claude, 'diagnostics');
+			await panel.getByRole('button', { name: 'Back' }).click();
+
 			await panel.getByRole('checkbox', { name: /^Include starred chats/ }).check();
 			await panel.getByRole('button', { name: 'Review 3 chats' }).click();
 			await claude.expandMonths();
