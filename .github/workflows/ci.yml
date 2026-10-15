@@ -37,7 +37,7 @@ env:
 jobs:
   ci:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -66,12 +66,19 @@ jobs:
       - if: ${{ inputs.release }}
         run: npm run zip
 
+      # The Chromium revision this Playwright release expects, and the system libraries it needs.
+      - run: npx --no -- playwright install --with-deps chromium
+
+      # The build from the step above (for a release, the one just zipped) in Chromium against the
+      # fake claude.ai. Not `npm run test:e2e`, which would build again first.
+      - run: npx --no -- playwright test
+
       - if: ${{ inputs.release }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: extension
           path: .output/*-chrome.zip
-          # .output/ starts with a dot, and upload-artifact skips hidden paths unless told otherwise.
+          # .output/ starts with a dot; upload-artifact skips hidden paths unless told otherwise.
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
