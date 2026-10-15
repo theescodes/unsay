@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.2.0](https://github.com/theescodes/unsay/compare/v0.1.1...v0.2.0) (2026-10-15)
+
+
+### Features
+
+* **core:** record the shape of claude.ai's answers for diagnostics ([9ffe542](https://github.com/theescodes/unsay/commit/9ffe542cdbad2199cb22f9c0b32489697263836a))
+* **ui:** add a Diagnostics view for compatibility and bug reports ([a61be59](https://github.com/theescodes/unsay/commit/a61be596fd9e76e91453b24aaaef4d886383bb08))
+
+
+### Bug Fixes
+
+* **deps:** update dependency zod to v4.6.7 ([7151ef5](https://github.com/theescodes/unsay/commit/7151ef508b2b77eb9b08c7bfcc1c3c2f1a8b587e))
+
 ## [0.1.1](https://github.com/theescodes/unsay/compare/v0.1.0...v0.1.1) (2026-10-15)
 
 
