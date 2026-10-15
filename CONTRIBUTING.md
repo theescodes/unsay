@@ -5,8 +5,10 @@ and everything else is welcome.
 
 What helps most:
 
-- **Bug reports** through the issue form, with the "Technical details" from the panel's error
-  screen when there is one. Never paste chat titles, contents or ids.
+- **Compatibility reports:** try Unsay on your account and say how it went, with the panel's
+  Diagnostics; see [docs/beta-testing.md](docs/beta-testing.md).
+- **Bug reports** through the issue form, with the panel's Diagnostics and the "Technical details"
+  from its error screen when there is one. Never paste chat titles, contents or ids.
 - **Fixes when claude.ai changes its internal API.** It is undocumented and changes without notice;
   see [below](#when-claudeai-changes-its-api).
 - **Ideas** through the idea form. For anything bigger than a small fix, open an issue first so we
@@ -45,6 +47,8 @@ be merged.
 - **Starred chats are left alone** unless the user opts in.
 - **Every response from claude.ai is validated** by the zod schemas in `src/lib/core`. On a shape
   we don't recognise, stop with a clear error and delete nothing.
+- **Diagnostics hold no values from claude.ai.** They describe its answers by field names, kinds
+  of values and counts; never a title, an id or a name.
 - **Tests never touch the real claude.ai.** They run against the in-memory fake in
   `src/lib/core/testing`; the browser tests route every claude.ai request to it and block all
   other hosts.
@@ -85,7 +89,7 @@ commit messages:
 ## When claude.ai changes its API
 
 The extension stops instead of guessing, and the error screen's "Technical details" name the
-request and the field that changed. A fix usually touches:
+request and the field that changed; its Diagnostics show the new shape. A fix usually touches:
 
 1. `src/lib/core/schemas.ts`: accept the new shape. Stay strict on anything a deletion decision
    depends on (ids, timestamps, the starred flag, project membership).
