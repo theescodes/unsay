@@ -1,0 +1,88 @@
+name: Compatibility report
+description: You tried Unsay on your claude.ai account. Tell us how it went, also if all worked.
+labels: [compatibility]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing. Unsay was built against one claude.ai account, and claude.ai's API is
+        undocumented: accounts unlike that one show what still needs work. "It all worked" is a
+        useful report too. The [tester guide](https://github.com/theescodes/unsay/blob/main/docs/beta-testing.md)
+        says what to try.
+
+        **Please don't paste chat titles, chat contents or ids**: the diagnostics hold none of them,
+        and this issue is public.
+  - type: input
+    id: version
+    attributes:
+      label: Unsay version
+      description: The first line of the diagnostics, or Unsay's card in chrome://extensions.
+      placeholder: 0.1.1
+    validations:
+      required: true
+  - type: dropdown
+    id: plan
+    attributes:
+      label: claude.ai plan
+      description: Pick more than one if you switch between accounts.
+      multiple: true
+      options:
+        - Free
+        - Pro
+        - Max
+        - Team
+        - Enterprise
+        - Not sure
+  - type: checkboxes
+    id: account
+    attributes:
+      label: Your account
+      options:
+        - label: More than 100 chats
+        - label: Chats in projects (claude.ai/projects)
+        - label: More than one account in claude.ai's account switcher (for example personal and Team)
+  - type: checkboxes
+    id: tried
+    attributes:
+      label: What you tried
+      options:
+        - label: Loaded the list
+        - label: Filtered by project
+        - label: Switched accounts in the panel
+        - label: Deleted throwaway chats
+        - label: Deleted the chat open in the tab
+        - label: Cancelled a run
+  - type: dropdown
+    id: worked
+    attributes:
+      label: Did it work?
+      options:
+        - Yes, everything I tried
+        - Partly
+        - No
+    validations:
+      required: true
+  - type: textarea
+    id: counts
+    attributes:
+      label: Did the numbers match claude.ai?
+      description: >-
+        For example the panel's total against your chats on claude.ai/recents, a project's count in
+        the Project filter against that project's page, the accounts in the panel against claude.ai's
+        account switcher. Rough is fine.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Anything that didn't work, surprised you or was unclear.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >-
+        In the panel, choose "Diagnostics" (bottom left), read it, then "Copy" and paste it here.
+        Copy it after trying things: it covers everything Unsay did since claude.ai was loaded in
+        the tab.
+      render: json
+    validations:
+      required: true

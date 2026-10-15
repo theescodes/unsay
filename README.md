@@ -12,7 +12,8 @@ claude.ai, sends nothing anywhere else.
 
 > **Status: early development.** Not in the Chrome Web Store yet. The panel works end to end and
 > has deleted real chats in testing, but it is young: if you try it, try it on throwaway chats
-> first.
+> first. Testers with many chats, projects or a Team account help most: see
+> [docs/beta-testing.md](docs/beta-testing.md).
 >
 > Not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic.
 
@@ -44,6 +45,8 @@ attestation, so you can check that what you install matches the source.
 - Talks only to claude.ai, with your existing session, the same way the claude.ai web app does.
 - No analytics, no tracking, no remote code, no servers of its own. Your chat titles never leave
   your browser.
+- The panel's **Diagnostics** describe claude.ai's answers by field names and counts, for bug
+  reports. They hold no titles, ids or names, stay in the tab, and leave it only if you copy them.
 
 ## Permissions
 

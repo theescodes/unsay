@@ -14,6 +14,8 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
   in both the fresh list and the user's selection. Each of these invariants has a test; keep it.
 - **claude.ai's API is undocumented.** Every response goes through the zod schemas in
   `src/lib/core`. On an unknown shape, stop with a clear error and delete nothing.
+- **Diagnostics hold no values from claude.ai.** `src/lib/core/diagnostics.ts` keeps field names,
+  kinds of values and counts; no title, id or name may reach the report. Tests check it.
 - **Tests never touch the real claude.ai.** Unit tests use the in-memory fake; e2e routes
   `https://claude.ai/**` to it.
 - **No new origins, no new permissions** without updating the README permission table and the

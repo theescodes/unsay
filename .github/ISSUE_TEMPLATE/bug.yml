@@ -54,3 +54,11 @@ body:
         If the panel showed an error, open "Technical details" on it and paste them here. Ids are
         already blanked out.
       render: text
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: >-
+        In the panel, choose "Diagnostics" (bottom left), read it, then "Copy" and paste it here.
+        It holds field names and counts, no titles, ids or names.
+      render: json
