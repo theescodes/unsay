@@ -4,7 +4,7 @@ claude.ai's web API is internal and undocumented. This file records what was act
 so the zod schemas in `src/lib/core/schemas.ts`, the fixtures and `FakeClaude` can be checked
 against something. Anything not observed is marked as such; the code must not rely on it.
 
-## How this was gathered (2026-10-14)
+## How this was gathered (2026-10-14 and 15)
 
 - **Read-only probe:** a console script on claude.ai on the maintainer's account (one org, 82
   chats), GET requests only. It reported field names, types, counts and selected headers; no
@@ -15,6 +15,9 @@ against something. Anything not observed is marked as such; the code must not re
 - The endpoint paths come from an MIT-licensed console script
   (MatteoLeonesi/bulk-delete-claude-chat); the probe and the delete test confirmed the ones marked
   "observed" below.
+- **Follow-up on 2026-10-15,** same account (76 chats by then): read-only console probes that
+  printed field names, types and counts plus the paths of claude.ai's own requests in the tab (ids
+  blanked), and runs of the extension itself.
 
 ## Endpoints
 
@@ -61,11 +64,26 @@ involved) gets the same session: verified on 2026-10-14 when the panel loaded th
   `conversation` in the fixtures builds this shape.
 
 - **Project membership** therefore comes from `project_uuid` when present, otherwise from
-  `project`: `null` means not in a project, `{ uuid, name }` means that project. The filled
-  shape of `project` has never been seen (the probed account has no projects), so a shape the
-  schema can't read leaves the membership _unknown_. A chat with unknown membership only matches
-  "any project", never "not in a project" or a specific project, so a project filter can't
-  select it by mistake. If `project_uuid` and `project` disagree, the extension stops.
+  `project`: `null` means not in a project, `{ uuid, name }` means that project. The filled shape
+  of `project` has never been seen (see "Projects" below), so a shape the schema can't read leaves
+  the membership _unknown_: such a chat only matches "any project", never "not in a project" or a
+  specific project, so a project filter can't select it by mistake. If `project_uuid` and
+  `project` disagree, the extension stops.
+
+### The newer list: `chat_conversations_v2`
+
+- claude.ai's own sidebar lists chats with
+  `GET …/chat_conversations_v2?limit=30&offset=0&archived=false&consistency=eventual` (seen in
+  the tab's requests on 2026-10-15).
+- The answer is an object, `{ data: [...], has_more, search_incomplete }`, not a plain array.
+- On 2026-10-15 it held exactly the same 76 chats as the old list. Its items carry
+  `project_uuid` again (`null`) next to `project`, plus fields the old list doesn't have
+  (`needs_input`, `live_status`, `local_project_id`, …).
+- `archived=true` returned no chats on that account, so whether the old list includes archived
+  chats is unknown.
+- The extension still reads the old list, which answers as before. If claude.ai removes it, the
+  extension stops with "claude.ai changed" and deletes nothing; moving to v2 means a new schema
+  for the wrapper and paging on `has_more`.
 
 ### Single conversation
 
@@ -74,8 +92,26 @@ The extension doesn't use it; it was how the delete test was checked.
 
 ### Projects
 
-`GET …/projects` is a plain array (empty on the probed account). Conversations carry their
-project, so the extension takes project names from there and makes no extra request.
+`GET …/projects` is a plain array, empty on the probed account throughout (also in the variants
+below). The extension takes project names from the conversations and makes no extra request.
+
+Chats in classic chat projects have still not been observed: the account has none. Projects
+created on 2026-10-15 for the test turned out to belong to other parts of claude.ai (next
+section).
+
+### Claude Code and Cowork
+
+Both have projects and sessions of their own, kept apart from the chats:
+
+- A **Cowork** project (claude.ai/cowork/projects) with a chat in it.
+- A project created from claude.ai's projects page, which opened as a **Claude Code** project
+  (`/code/project/chan_…`), with a chat in it that had a message.
+
+On 2026-10-15 neither chat appeared in either conversation list (the count stayed the same), and
+`/projects`, `/projects?include_harmony_projects=true` and `/projects_v2` all returned an empty
+array. Opening the Code project made no request under `/api/` that a page script could see, so
+Claude Code loads its sessions some other way. The extension neither sees nor deletes Code or
+Cowork sessions.
 
 ### Rate limiting
 
