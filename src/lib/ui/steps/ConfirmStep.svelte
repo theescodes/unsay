@@ -39,7 +39,7 @@
 			{#if openChat}
 				<p class="text-muted">
 					The chat open in this tab is included. It is deleted last, after all the others are done
-					and checked. claude.ai may reload the page then.
+					and checked. claude.ai then closes it here and says the session is no longer available.
 				</p>
 			{/if}
 		</div>
