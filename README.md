@@ -95,16 +95,21 @@ npm ci           # also generates .wxt/ types and installs the git hooks
 npm run dev      # watch build into .output/chrome-mv3-dev — load that folder unpacked
 ```
 
-| Command             | What it does                                                          |
-| ------------------- | --------------------------------------------------------------------- |
-| `npm run check`     | `wxt prepare` + svelte-check (types)                                  |
-| `npm run lint`      | prettier --check and eslint, both always run                          |
-| `npm run dep:check` | dependency-cruiser module boundaries                                  |
-| `npm run test`      | Vitest                                                                |
-| `npm run build`     | production build into `.output/chrome-mv3`                            |
-| `npm run zip`       | store-ready zip                                                       |
-| `npm run format`    | prettier --write                                                      |
-| `npm run icons`     | renders `public/icon/*.png` and the social preview from `brand/*.svg` |
+| Command             | What it does                                                              |
+| ------------------- | ------------------------------------------------------------------------- |
+| `npm run check`     | `wxt prepare` + svelte-check (types)                                      |
+| `npm run lint`      | prettier --check and eslint, both always run                              |
+| `npm run dep:check` | dependency-cruiser module boundaries                                      |
+| `npm run test`      | Vitest                                                                    |
+| `npm run test:e2e`  | builds, then runs the browser tests (Playwright) against a fake claude.ai |
+| `npm run build`     | production build into `.output/chrome-mv3`                                |
+| `npm run zip`       | store-ready zip                                                           |
+| `npm run format`    | prettier --write                                                          |
+| `npm run icons`     | renders `public/icon/*.png` and the social preview from `brand/*.svg`     |
+
+The browser tests load the built extension into Chromium and answer every request to claude.ai
+with the same in-memory fake the unit tests use; nothing reaches the real site. Before the first
+run: `npx playwright install chromium`.
 
 Commits follow Conventional Commits (commitlint), and the pre-commit hook runs prettier,
 svelte-check and eslint. `main` takes rebase merges only.
@@ -119,6 +124,9 @@ svelte-check and eslint. `main` takes rebase merges only.
   deleter. No Svelte, no extension APIs (enforced by ESLint and dependency-cruiser), so it is
   tested in Node against a fake claude.ai.
 - `src/lib/ui/` — the Svelte 5 panel.
+- `e2e/` — browser tests: the built extension in Chromium, with claude.ai answered by the same
+  fake, including accounts unlike the one the API was observed on (thousands of chats, projects,
+  several organizations).
 
 ## Contributing
 

@@ -1,8 +1,9 @@
 /*
  * An in-memory claude.ai: the four endpoints the extension uses, behaving the way the real
  * ones did in the 2026-10-14 spike (docs/api-notes.md). Unit tests inject `fake.fetch`; the
- * e2e suite will route https://claude.ai/api/** to it. Anything it doesn't know answers with
- * a loud 404, so a test can never pass by accident against an endpoint we don't model.
+ * e2e suite routes https://claude.ai/api/** to it (e2e/fixtures.ts). Anything it doesn't know
+ * answers with a loud 404, so a test can never pass by accident against an endpoint we don't
+ * model.
  */
 
 export interface RecordedCall {
@@ -52,6 +53,14 @@ export class FakeClaude {
 
 	has(org: string, uuid: string): boolean {
 		return this.conversations(org).some((chat) => chat.uuid === uuid);
+	}
+
+	/** Gone as if deleted somewhere else (another tab, the app): no call is recorded. */
+	drop(org: string, uuid: string) {
+		this.chats.set(
+			org,
+			this.conversations(org).filter((chat) => chat.uuid !== uuid)
+		);
 	}
 
 	deleteCalls(): RecordedCall[] {

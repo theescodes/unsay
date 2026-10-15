@@ -53,8 +53,9 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 - Conventional Commits, enforced by commitlint; body/footer lines at most 100 characters.
 - The pre-commit hook (lefthook) runs prettier, `npm run check` and eslint --fix. Don't bypass it
   with `--no-verify` unless the user explicitly says so.
-- CI (`.github/workflows/ci.yml`) is the source of truth: check, lint, dep:check, test, build.
-  `release.yml` calls it on the release commit; release-only steps stay behind `inputs.release`.
+- CI (`.github/workflows/ci.yml`) is the source of truth: check, lint, dep:check, test, build,
+  e2e. `release.yml` calls it on the release commit; release-only steps stay behind
+  `inputs.release`.
 - Releases come from release-please: merging its release PR publishes the GitHub release (draft,
   zip + attestation attached, then published and immutable). Never create `v*` tags or edit
   `CHANGELOG.md` by hand.
@@ -62,5 +63,6 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 ## Commands
 
 `npm run dev` (load `.output/chrome-mv3-dev` unpacked) · `npm run check` · `npm run lint` ·
-`npm run dep:check` · `npm run test` · `npm run build` · `npm run zip` ·
+`npm run dep:check` · `npm run test` · `npm run test:e2e` (builds, then Playwright in `e2e/`) ·
+`npm run build` · `npm run zip` ·
 `npm run icons` (re-render `public/icon/` after editing `brand/*.svg`)
