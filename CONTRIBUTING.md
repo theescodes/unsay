@@ -28,7 +28,9 @@ Load `.output/chrome-mv3-dev` in `chrome://extensions` (Developer mode → Load 
 claude.ai. Try anything that deletes on throwaway chats only.
 
 Before you push, the same checks as CI: `npm run check`, `npm run lint`, `npm run dep:check`,
-`npm run test` and `npm run build`. The pre-commit hook runs prettier, the type check and eslint.
+`npm run test` and `npm run test:e2e` (the browser tests; it builds first, and needs
+`npx playwright install chromium` once). The pre-commit hook runs prettier, the type check and
+eslint.
 
 ## Ground rules
 
@@ -44,7 +46,8 @@ be merged.
 - **Every response from claude.ai is validated** by the zod schemas in `src/lib/core`. On a shape
   we don't recognise, stop with a clear error and delete nothing.
 - **Tests never touch the real claude.ai.** They run against the in-memory fake in
-  `src/lib/core/testing`.
+  `src/lib/core/testing`; the browser tests route every claude.ai request to it and block all
+  other hosts.
 - **No new origins, no new permissions, no analytics, no remote code.** A new permission needs the
   README permission table and the store justification updated in the same pull request.
 - **`src/lib/core` stays plain TypeScript:** no Svelte, WXT or extension APIs. ESLint and

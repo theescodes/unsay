@@ -116,6 +116,13 @@
 			"groupName": "framework deps",
 			"automerge": false,
 			"labels": ["review-required"]
+		},
+		{
+			"description": "Repo-specific: axe's Playwright binding is dev tooling like axe-core and Playwright, so it joins that group",
+			"matchPackageNames": ["@axe-core/playwright"],
+			"matchUpdateTypes": ["patch", "minor"],
+			"groupName": "dev tooling",
+			"automerge": true
 		}
 	],
 	"customManagers": [
