@@ -29,6 +29,7 @@
 		"@axe-core/playwright": "4.13.0",
 		"@commitlint/cli": "21.2.3",
 		"@commitlint/config-conventional": "21.2.3",
+		"@commitlint/types": "21.2.3",
 		"@eslint/js": "10.0.1",
 		"@playwright/test": "1.64.0",
 		"@sveltejs/vite-plugin-svelte": "7.3.1",
