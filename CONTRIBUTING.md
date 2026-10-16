@@ -54,7 +54,8 @@ be merged.
   `src/lib/core/testing`; the browser tests route every claude.ai request to it and block all
   other hosts.
 - **No new origins, no new permissions, no analytics, no remote code.** A new permission needs the
-  README permission table and the store justification updated in the same pull request.
+  README permission table and the store justification in `docs/store-listing.md` updated in the
+  same pull request.
 - **`src/lib/core` stays plain TypeScript:** no Svelte, WXT or extension APIs. ESLint and
   `pnpm dep:check` enforce it.
 - **The panel is a guest on claude.ai.** It lives in a shadow root and never changes claude.ai's

@@ -19,7 +19,7 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 - **Tests never touch the real claude.ai.** Unit tests use the in-memory fake; e2e routes
   `https://claude.ai/**` to it.
 - **No new origins, no new permissions** without updating the README permission table and the
-  store justification in the same PR. No analytics, no remote code.
+  store justification (`docs/store-listing.md`) in the same PR. No analytics, no remote code.
 - **`src/lib/core` stays framework-free:** no Svelte, WXT, bits-ui or extension APIs, fetch is
   injected. Enforced by ESLint (`no-restricted-imports`) and dependency-cruiser (`pnpm dep:check`).
 - **The panel lives in a shadow root on someone else's page.** Tokens hang off `:host`, never
@@ -69,4 +69,5 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 `pnpm dev` (load `.output/chrome-mv3-dev` unpacked) · `pnpm check` · `pnpm lint` ·
 `pnpm dep:check` · `pnpm test` · `pnpm test:e2e` (builds, then Playwright in `e2e/`) ·
 `pnpm build` · `pnpm zip` ·
-`pnpm icons` (re-render `public/icon/` after editing `brand/*.svg`)
+`pnpm icons` (re-render `public/icon/` and the store tiles after editing `brand/*.svg`) ·
+`pnpm screenshots` (re-render the store screenshots in `brand/store/`)
