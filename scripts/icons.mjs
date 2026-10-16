@@ -7,7 +7,9 @@
  * transparent padding on each side.
  *
  * Also renders brand/social-preview.png, the card GitHub shows when the repo is shared
- * (1280x640; upload it under Settings > Social preview, there is no API for it).
+ * (1280x640; upload it under Settings > Social preview, there is no API for it), and the
+ * Chrome Web Store's promo tiles in brand/store/ (440x280 small, 1400x560 marquee; uploaded by
+ * hand with the listing, see docs/store-listing.md).
  *
  * Usage: pnpm icons
  */
@@ -52,31 +54,78 @@ try {
 	}
 
 	const icon = await readFile('brand/icon.svg', 'utf8');
-	const page = await browser.newPage({
-		viewport: { width: 1280, height: 640 },
-		deviceScaleFactor: 1,
-		colorScheme: 'light'
-	});
-	// Colours from the panel's dark tokens; the font is the system UI font the panel uses too.
-	await page.setContent(
-		`<!doctype html><html><head><style>
-			*{margin:0;padding:0}
-			body{width:1280px;height:640px;background:#0a1c26;display:flex;align-items:center;
-				gap:72px;padding:0 140px;box-sizing:border-box;font-family:system-ui,sans-serif}
-			svg{width:240px;height:240px;flex:none}
-			h1{color:#e9f0f2;font-size:128px;font-weight:800;letter-spacing:-0.03em;line-height:1}
-			p{color:#9bb0b8;font-size:38px;line-height:1.35;margin-top:24px}
-			small{display:block;color:#ff8a55;font-size:28px;margin-top:36px;font-weight:600}
-		</style></head><body>${icon}<div>
-			<h1>Unsay</h1>
-			<p>Bulk-delete your claude.ai chats.<br>Open source, nothing leaves your browser.</p>
-			<small>github.com/theescodes/unsay</small>
-		</div></body></html>`,
-		{ waitUntil: 'load' }
-	);
-	await writeFile('brand/social-preview.png', await page.screenshot({ type: 'png' }));
-	await page.close();
-	console.log('brand/social-preview.png');
+	const TAGLINE = 'Bulk-delete your claude.ai chats.<br>Open source, nothing leaves your browser.';
+	const REPO = 'github.com/theescodes/unsay';
+	// Sizes in px; `url: 0` leaves the repo line out. The small tile shows at its own size in the
+	// store, so it says less, larger. The social preview keeps its left-aligned layout.
+	const CARDS = [
+		{
+			path: 'brand/social-preview.png',
+			width: 1280,
+			height: 640,
+			inset: 140,
+			tagline: TAGLINE,
+			icon: 240,
+			gap: 72,
+			title: 128,
+			text: 38,
+			url: 28
+		},
+		{
+			path: 'brand/store/promo-marquee.png',
+			width: 1400,
+			height: 560,
+			inset: null,
+			tagline: TAGLINE,
+			icon: 220,
+			gap: 72,
+			title: 120,
+			text: 36,
+			url: 26
+		},
+		{
+			path: 'brand/store/promo-small.png',
+			width: 440,
+			height: 280,
+			inset: null,
+			tagline: 'Bulk-delete your<br>claude.ai chats.',
+			icon: 104,
+			gap: 28,
+			title: 60,
+			text: 21,
+			url: 0
+		}
+	];
+	for (const card of CARDS) {
+		const page = await browser.newPage({
+			viewport: { width: card.width, height: card.height },
+			deviceScaleFactor: 1,
+			colorScheme: 'light'
+		});
+		// Colours from the panel's dark tokens; the font is the system UI font the panel uses too.
+		await page.setContent(
+			`<!doctype html><html><head><style>
+				*{margin:0;padding:0}
+				body{width:${card.width}px;height:${card.height}px;background:#0a1c26;display:flex;
+					align-items:center;gap:${card.gap}px;box-sizing:border-box;
+					${card.inset === null ? 'justify-content:center' : `padding:0 ${card.inset}px`};
+					font-family:system-ui,sans-serif}
+				svg{width:${card.icon}px;height:${card.icon}px;flex:none}
+				h1{color:#e9f0f2;font-size:${card.title}px;font-weight:800;letter-spacing:-0.03em;
+					line-height:1}
+				p{color:#9bb0b8;font-size:${card.text}px;line-height:1.35;margin-top:${Math.round(card.text * 0.63)}px}
+				small{display:block;color:#ff8a55;font-size:${card.url}px;margin-top:36px;font-weight:600}
+			</style></head><body>${icon}<div>
+				<h1>Unsay</h1>
+				<p>${card.tagline}</p>
+				${card.url ? `<small>${REPO}</small>` : ''}
+			</div></body></html>`,
+			{ waitUntil: 'load' }
+		);
+		await writeFile(card.path, await page.screenshot({ type: 'png' }));
+		await page.close();
+		console.log(card.path);
+	}
 } finally {
 	await browser.close();
 }

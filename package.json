@@ -23,7 +23,8 @@
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:e2e": "wxt build && playwright test",
-		"icons": "node scripts/icons.mjs"
+		"icons": "node scripts/icons.mjs",
+		"screenshots": "wxt build && playwright test -c playwright.store.config.ts"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "4.13.0",
