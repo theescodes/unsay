@@ -10,10 +10,9 @@
 Bulk-delete your claude.ai chats, with filters and a review step. Open source, runs only on
 claude.ai, sends nothing anywhere else.
 
-> **Status: early development.** Not in the Chrome Web Store yet. The panel works end to end and
-> has deleted real chats in testing, but it is young: if you try it, try it on throwaway chats
-> first. Testers with many chats, projects or a Team account help most: see
-> [docs/beta-testing.md](docs/beta-testing.md).
+> **Status:** 1.0 is on its way to the Chrome Web Store. Until its listing is live, install it
+> from a [release](#install-from-a-release). Reports from accounts with many chats, projects or a
+> Team plan help most: see [docs/beta-testing.md](docs/beta-testing.md).
 >
 > Not affiliated with or endorsed by Anthropic. "Claude" is a trademark of Anthropic.
 
@@ -48,6 +47,8 @@ attestation, so you can check that what you install matches the source.
 - The panel's **Diagnostics** describe claude.ai's answers by field names and counts, for bug
   reports. They hold no titles, ids or names, stay in the tab, and leave it only if you copy them.
 
+The full [privacy policy](PRIVACY.md) says exactly what Unsay reads and what it does with it.
+
 ## Permissions
 
 | Permission                              | Why                                                                                   |
@@ -55,8 +56,8 @@ attestation, so you can check that what you install matches the source.
 | Content script on `https://claude.ai/*` | Shows the panel and calls claude.ai's own API with your session.                      |
 | `web_accessible_resources` (panel CSS)  | WXT loads the panel's stylesheet into its shadow root; the URL is per-session random. |
 
-That is the whole list. Any new permission has to be added to this table and justified in the
-pull request that adds it.
+That is the whole list. Any new permission has to be added to this table and to the store
+justification in [docs/store-listing.md](docs/store-listing.md), in the pull request that adds it.
 
 ## Install from a release
 
@@ -102,17 +103,18 @@ pnpm install --frozen-lockfile   # also generates .wxt/ types and installs the g
 pnpm dev                         # watch build into .output/chrome-mv3-dev — load that folder unpacked
 ```
 
-| Command          | What it does                                                              |
-| ---------------- | ------------------------------------------------------------------------- |
-| `pnpm check`     | `wxt prepare` + svelte-check (types)                                      |
-| `pnpm lint`      | prettier --check and eslint, both always run                              |
-| `pnpm dep:check` | dependency-cruiser module boundaries                                      |
-| `pnpm test`      | Vitest                                                                    |
-| `pnpm test:e2e`  | builds, then runs the browser tests (Playwright) against a fake claude.ai |
-| `pnpm build`     | production build into `.output/chrome-mv3`                                |
-| `pnpm zip`       | store-ready zip                                                           |
-| `pnpm format`    | prettier --write                                                          |
-| `pnpm icons`     | renders `public/icon/*.png` and the social preview from `brand/*.svg`     |
+| Command            | What it does                                                              |
+| ------------------ | ------------------------------------------------------------------------- |
+| `pnpm check`       | `wxt prepare` + svelte-check (types)                                      |
+| `pnpm lint`        | prettier --check and eslint, both always run                              |
+| `pnpm dep:check`   | dependency-cruiser module boundaries                                      |
+| `pnpm test`        | Vitest                                                                    |
+| `pnpm test:e2e`    | builds, then runs the browser tests (Playwright) against a fake claude.ai |
+| `pnpm build`       | production build into `.output/chrome-mv3`                                |
+| `pnpm zip`         | store-ready zip                                                           |
+| `pnpm format`      | prettier --write                                                          |
+| `pnpm icons`       | renders `public/icon/*.png`, the social preview and the store tiles       |
+| `pnpm screenshots` | builds, then renders the store screenshots into `brand/store/`            |
 
 The browser tests load the built extension into Chromium and answer every request to claude.ai
 with the same in-memory fake the unit tests use; nothing reaches the real site. Before the first
