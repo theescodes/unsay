@@ -19,6 +19,13 @@ minimumReleaseAge: 4320
 # that is not a downgrade instead of failing the install.
 trustPolicy: no-downgrade
 
+# Versions published more than a year ago skip the trust check. A takeover
+# shows up as a new release, and a publish date cannot be backdated, so the
+# check stays in force for everything recent, while old hand-published
+# releases (such as semver@6.3.1, the 2023 ReDoS backport Babel requires)
+# need no exception of their own.
+trustPolicyIgnoreAfter: 525600
+
 # Audited exceptions go in trustPolicyExclude, each by exact version so the next
 # release of the same package is checked again. This drops an entry once the
 # lockfile no longer resolves that version, so the list cannot go stale.
