@@ -15,9 +15,9 @@ test('loads thousands of chats page by page and deletes them in batches', async 
 	await claude.open({ chats: Array.from({ length: total }, (_, i) => chat(i + 1, 1 + i / 4)) });
 	const { panel, fake } = claude;
 
-	await expect(panel.getByText('2500 of 2,500 chats match.')).toBeVisible();
+	await expect(panel.getByText('2,500 of 2,500 chats match.')).toBeVisible();
 	await panel.getByRole('button', { name: 'Review 2,500 chats' }).click();
-	await expect(panel.getByText('2500 of 2,500 chats selected')).toBeVisible();
+	await expect(panel.getByText('2,500 of 2,500 chats selected')).toBeVisible();
 	await claude.confirmAndDelete(total);
 	await expect(panel.getByText('2,500 chats deleted')).toBeVisible({ timeout: 30_000 });
 

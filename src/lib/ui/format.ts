@@ -12,9 +12,14 @@ const numbers = new Intl.NumberFormat('en');
 const months = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' });
 const relative = new Intl.RelativeTimeFormat('en', { numeric: 'always' });
 
+/** `formatNumber(1200)` → "1,200". */
+export function formatNumber(n: number): string {
+	return numbers.format(n);
+}
+
 /** `count(1, 'chat')` → "1 chat", `count(1200, 'chat')` → "1,200 chats". */
 export function count(n: number, noun: string): string {
-	return `${numbers.format(n)} ${n === 1 ? noun : `${noun}s`}`;
+	return `${formatNumber(n)} ${n === 1 ? noun : `${noun}s`}`;
 }
 
 export function chatTitle(chat: Conversation): string {

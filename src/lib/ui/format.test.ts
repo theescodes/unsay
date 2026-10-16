@@ -8,6 +8,7 @@ import {
 	chatTitle,
 	count,
 	describeError,
+	formatNumber,
 	groupByMonth,
 	isConfirmed,
 	lastActiveLabel,
@@ -31,6 +32,13 @@ describe('count', () => {
 		expect(count(1, 'chat')).toBe('1 chat');
 		expect(count(0, 'chat')).toBe('0 chats');
 		expect(count(1200, 'starred chat')).toBe('1,200 starred chats');
+	});
+});
+
+describe('formatNumber', () => {
+	it('groups digits like count', () => {
+		expect(formatNumber(999)).toBe('999');
+		expect(formatNumber(2500)).toBe('2,500');
 	});
 });
 

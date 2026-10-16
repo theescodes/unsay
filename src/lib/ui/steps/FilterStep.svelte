@@ -3,7 +3,7 @@
 
 	import Button from '../components/Button.svelte';
 	import StepLayout from '../components/StepLayout.svelte';
-	import { count } from '../format';
+	import { count, formatNumber } from '../format';
 	import type { SweepSession } from '../session.svelte';
 
 	interface Props {
@@ -121,7 +121,10 @@
 		{#if session.conversations.length === 0}
 			This account has no chats.
 		{:else}
-			<strong>{session.matches.length}</strong> of {count(session.conversations.length, 'chat')}
+			<strong>{formatNumber(session.matches.length)}</strong> of {count(
+				session.conversations.length,
+				'chat'
+			)}
 			match.
 		{/if}
 	</p>
