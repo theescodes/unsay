@@ -1,6 +1,6 @@
-# Lefthook config. Installed automatically by `npm install` through the `prepare`
+# Lefthook config. Installed automatically by `pnpm install` through the `prepare`
 # script.
-# Re-sync after edits: `npx lefthook install`
+# Re-sync after edits: `pnpm exec lefthook install`
 # Skip all hooks (last resort): LEFTHOOK=0 git commit ...
 
 pre-commit:
@@ -14,19 +14,19 @@ pre-commit:
       # --check after --write: prettier can format non-idempotently, and --write
       # alone "succeeds" on such output while CI's --check then fails. The
       # trailing --check blocks the commit locally instead.
-      run: npx --no -- prettier --write {staged_files} && npx --no -- prettier --check {staged_files}
+      run: pnpm exec prettier --write {staged_files} && pnpm exec prettier --check {staged_files}
       stage_fixed: true
     - name: svelte-check
       glob: '*.{svelte,ts,js}'
-      run: npm run check
+      run: pnpm check
     - name: eslint
       glob: '*.{js,ts,cjs,mjs,svelte}'
       # --cache (content strategy) so a warm run skips the type-aware program
       # build for unchanged files.
-      run: npx --no -- eslint --cache --cache-strategy content --fix {staged_files}
+      run: pnpm exec eslint --cache --cache-strategy content --fix {staged_files}
       stage_fixed: true
 
 commit-msg:
   commands:
     commitlint:
-      run: npx --no -- commitlint --edit {1}
+      run: pnpm exec commitlint --edit {1}

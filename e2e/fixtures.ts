@@ -262,7 +262,7 @@ export class ClaudeTab {
 export const test = base.extend<{ claude: ClaudeTab }>({
 	context: async ({ playwright }, use) => {
 		if (!existsSync(path.join(EXTENSION, 'manifest.json'))) {
-			throw new Error(`No build in ${EXTENSION}: run \`npm run build\` first.`);
+			throw new Error(`No build in ${EXTENSION}: run \`pnpm build\` first.`);
 		}
 		// The `chromium` channel is the full browser in its new headless mode, which runs
 		// extensions; the default headless shell doesn't.

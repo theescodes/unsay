@@ -9,7 +9,7 @@
  * Also renders brand/social-preview.png, the card GitHub shows when the repo is shared
  * (1280x640; upload it under Settings > Social preview, there is no API for it).
  *
- * Usage: npm run icons
+ * Usage: pnpm icons
  */
 
 import { readFile, writeFile } from 'node:fs/promises';

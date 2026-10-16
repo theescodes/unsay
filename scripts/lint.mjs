@@ -1,4 +1,4 @@
-// Launcher for the lint suite. `npm run lint` used to chain
+// Launcher for the lint suite. `pnpm lint` used to chain
 // `prettier --check . && eslint .`; the `&&` short-circuits, so a single
 // prettier formatting nit aborts the run *before* eslint and silently hides
 // every eslint violation repo-wide. (That is exactly how a stray-formatted
@@ -13,7 +13,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 // Resolve the local bins directly so bare `node scripts/lint.mjs` works too —
-// only `npm run` puts node_modules/.bin on PATH.
+// only `pnpm run` puts node_modules/.bin on PATH.
 const bin = (/** @type {string} */ name) =>
 	fileURLToPath(new URL(`../node_modules/.bin/${name}`, import.meta.url));
 

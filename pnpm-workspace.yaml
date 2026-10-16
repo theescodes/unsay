@@ -1,0 +1,44 @@
+# pnpm settings. pnpm 12 reads every setting except auth and registry from this
+# file, never from .npmrc, and fails on a key it does not know (the running pnpm
+# satisfies packageManager's pin), so a misspelled gate cannot switch itself off
+# silently.
+
+# Supply-chain gate: refuse to resolve package versions published fewer than
+# 3 days ago (4320 minutes). A smash-and-grab compromised release is usually
+# yanked within ~72h, and the build allowlist below independently blocks the
+# most common malware payload. Set explicitly, it is strict: no fallback to a
+# younger version when nothing in range is old enough. pnpm re-checks every
+# lockfile entry against it on install, --frozen-lockfile included, so it gates
+# CI and the release build too, not only resolution. Renovate waits the same 3
+# days (renovate.json), so its PRs pass it.
+minimumReleaseAge: 4320
+
+# Refuse a version whose publish evidence (trusted publisher, provenance) is
+# weaker than an earlier release's — what a hijacked maintainer account
+# publishing from a laptop looks like. pnpm falls back to the newest version
+# that is not a downgrade instead of failing the install.
+trustPolicy: no-downgrade
+
+# Audited exceptions go in trustPolicyExclude, each by exact version so the next
+# release of the same package is checked again. This drops an entry once the
+# lockfile no longer resolves that version, so the list cannot go stale.
+trustPolicyExcludePrune: true
+
+# Exact versions on save (no ^/~ prefixes).
+saveExact: true
+
+# Refuse to install a dependency whose engines exclude the running Node instead
+# of warning. The project's own engines field is enforced regardless.
+engineStrict: true
+
+# Dependency install scripts run only for packages approved here; any other
+# package that has one fails the install (strictDepBuilds, on by default)
+# until it is decided here, e.g. with `pnpm approve-builds`. Entries are keyed
+# by package NAME, not name@version, so a Renovate bump of esbuild or lefthook
+# does not need a re-approval: the per-version review happens on the bump PR
+# itself (exact pins + minimumReleaseAge above), while a NEW script-running
+# package still fails here.
+allowBuilds:
+  esbuild: true
+  lefthook: true
+  fsevents: false

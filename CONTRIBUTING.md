@@ -19,19 +19,20 @@ security issue: report it privately as described in [SECURITY.md](SECURITY.md).
 
 ## Setup
 
-Node 24 and npm ≥ 11.10 (older versions refuse to install; see `.npmrc`).
+Node 24 and pnpm 12 (older versions refuse to install; a different pnpm switches to the version
+`packageManager` pins on its own; settings in `pnpm-workspace.yaml`).
 
 ```sh
-npm ci           # also generates .wxt/ types and installs the git hooks
-npm run dev      # watch build into .output/chrome-mv3-dev
+pnpm install --frozen-lockfile   # also generates .wxt/ types and installs the git hooks
+pnpm dev                         # watch build into .output/chrome-mv3-dev
 ```
 
 Load `.output/chrome-mv3-dev` in `chrome://extensions` (Developer mode → Load unpacked) and open
 claude.ai. Try anything that deletes on throwaway chats only.
 
-Before you push, the same checks as CI: `npm run check`, `npm run lint`, `npm run dep:check`,
-`npm run test` and `npm run test:e2e` (the browser tests; it builds first, and needs
-`npx playwright install chromium` once). The pre-commit hook runs prettier, the type check and
+Before you push, the same checks as CI: `pnpm check`, `pnpm lint`, `pnpm dep:check`,
+`pnpm test` and `pnpm test:e2e` (the browser tests; it builds first, and needs
+`pnpm exec playwright install chromium` once). The pre-commit hook runs prettier, the type check and
 eslint.
 
 ## Ground rules
@@ -55,7 +56,7 @@ be merged.
 - **No new origins, no new permissions, no analytics, no remote code.** A new permission needs the
   README permission table and the store justification updated in the same pull request.
 - **`src/lib/core` stays plain TypeScript:** no Svelte, WXT or extension APIs. ESLint and
-  `npm run dep:check` enforce it.
+  `pnpm dep:check` enforce it.
 - **The panel is a guest on claude.ai.** It lives in a shadow root and never changes claude.ai's
   page, styles or storage.
 

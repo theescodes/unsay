@@ -85,8 +85,8 @@ immutable: once published, their files and tag can't be changed. The release als
 ## Install from source
 
 ```sh
-npm ci
-npm run build
+pnpm install --frozen-lockfile
+pnpm build
 ```
 
 Then open `chrome://extensions`, turn on Developer mode, choose **Load unpacked** and select
@@ -94,28 +94,29 @@ Then open `chrome://extensions`, turn on Developer mode, choose **Load unpacked*
 
 ## Development
 
-Node 24 and npm ≥ 11.10 (installs refuse to run on anything older; see `.npmrc`).
+Node 24 and pnpm 12 (installs refuse to run on anything older; a different pnpm switches to the
+version `packageManager` pins on its own; settings in `pnpm-workspace.yaml`).
 
 ```sh
-npm ci           # also generates .wxt/ types and installs the git hooks
-npm run dev      # watch build into .output/chrome-mv3-dev — load that folder unpacked
+pnpm install --frozen-lockfile   # also generates .wxt/ types and installs the git hooks
+pnpm dev                         # watch build into .output/chrome-mv3-dev — load that folder unpacked
 ```
 
-| Command             | What it does                                                              |
-| ------------------- | ------------------------------------------------------------------------- |
-| `npm run check`     | `wxt prepare` + svelte-check (types)                                      |
-| `npm run lint`      | prettier --check and eslint, both always run                              |
-| `npm run dep:check` | dependency-cruiser module boundaries                                      |
-| `npm run test`      | Vitest                                                                    |
-| `npm run test:e2e`  | builds, then runs the browser tests (Playwright) against a fake claude.ai |
-| `npm run build`     | production build into `.output/chrome-mv3`                                |
-| `npm run zip`       | store-ready zip                                                           |
-| `npm run format`    | prettier --write                                                          |
-| `npm run icons`     | renders `public/icon/*.png` and the social preview from `brand/*.svg`     |
+| Command          | What it does                                                              |
+| ---------------- | ------------------------------------------------------------------------- |
+| `pnpm check`     | `wxt prepare` + svelte-check (types)                                      |
+| `pnpm lint`      | prettier --check and eslint, both always run                              |
+| `pnpm dep:check` | dependency-cruiser module boundaries                                      |
+| `pnpm test`      | Vitest                                                                    |
+| `pnpm test:e2e`  | builds, then runs the browser tests (Playwright) against a fake claude.ai |
+| `pnpm build`     | production build into `.output/chrome-mv3`                                |
+| `pnpm zip`       | store-ready zip                                                           |
+| `pnpm format`    | prettier --write                                                          |
+| `pnpm icons`     | renders `public/icon/*.png` and the social preview from `brand/*.svg`     |
 
 The browser tests load the built extension into Chromium and answer every request to claude.ai
 with the same in-memory fake the unit tests use; nothing reaches the real site. Before the first
-run: `npx playwright install chromium`.
+run: `pnpm exec playwright install chromium`.
 
 Commits follow Conventional Commits (commitlint), and the pre-commit hook runs prettier,
 svelte-check and eslint. `main` takes rebase merges only.

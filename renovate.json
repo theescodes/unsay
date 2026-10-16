@@ -93,14 +93,15 @@
 			"pinDigests": true
 		},
 		{
-			"description": "engines (node/npm) are floors, not versions to track: npm >= 11.10 is what the min-release-age gate needs, and the runtime Node version is pinned by the Dockerfile image and CI's NODE_VERSION, so a bare major is on purpose. Bumping them to the newest release breaks CI's engine-strict install (EBADENGINE).",
+			"description": "engines (node/pnpm) are floors, not versions to track: the exact pnpm is packageManager's pin, and the runtime Node version is pinned by the Dockerfile image and CI's NODE_VERSION, so a bare major is on purpose. pnpm enforces the project's own engines on every install, so a bumped floor would lock out every older local setup for nothing.",
 			"matchDepTypes": ["engines"],
 			"enabled": false
 		},
 		{
-			"description": "packageManager documents the npm bundled with the pinned Node; it moves with Node, not on its own (CI uses the bundled npm).",
+			"description": "packageManager pins the pnpm that CI (pnpm/setup), the Docker build and local installs all run. Its own PR, never auto-merged: a new pnpm can change how the lockfile is written and how the supply-chain gates in pnpm-workspace.yaml behave.",
 			"matchDepTypes": ["packageManager"],
-			"enabled": false
+			"automerge": false,
+			"labels": ["review-required"]
 		},
 		{
 			"description": "Node: CI's NODE_VERSION and the Docker node image (where there is one) move together in one PR, so production runs what CI tested; never auto-merged.",

@@ -42,36 +42,40 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+      # Installs the pnpm that package.json's packageManager pins, the Node above, and the
+      # dependencies. require-lockfile fails the job when pnpm-lock.yaml is missing instead of
+      # resolving afresh, and makes the install --frozen-lockfile. Besides the store (cache), the
+      # action always caches pnpm's lockfile verification, so re-checking every entry against
+      # minimumReleaseAge and trustPolicy stays cheap on an unchanged lockfile. The install's
+      # `prepare` runs `wxt prepare`, which generates the .wxt/ types and aliases that check, lint
+      # and dep:check resolve against.
+      - uses: pnpm/setup@a0881977cd8ea73b1ed212236c99ca10dcc80cf4 # v3.1.1
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
+          runtime: node@${{ env.NODE_VERSION }}
+          cache: true
+          require-lockfile: true
 
-      # `prepare` runs `wxt prepare`, which generates the .wxt/ types and aliases
-      # that check, lint and dep:check resolve against.
-      - run: npm ci
+      - run: pnpm check
 
-      - run: npm run check
+      - run: pnpm lint
 
-      - run: npm run lint
+      - run: pnpm dep:check
 
-      - run: npm run dep:check
-
-      - run: npm run test
+      - run: pnpm test
 
       - if: ${{ !inputs.release }}
-        run: npm run build
+        run: pnpm build
 
       # `wxt zip` builds first, then packs the extension for release.yml to publish.
       - if: ${{ inputs.release }}
-        run: npm run zip
+        run: pnpm zip
 
       # The Chromium revision this Playwright release expects, and the system libraries it needs.
-      - run: npx --no -- playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium
 
       # The build from the step above (for a release, the one just zipped) in Chromium against the
-      # fake claude.ai. Not `npm run test:e2e`, which would build again first.
-      - run: npx --no -- playwright test
+      # fake claude.ai. Not `pnpm test:e2e`, which would build again first.
+      - run: pnpm exec playwright test
 
       - if: ${{ inputs.release }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
