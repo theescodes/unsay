@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Signing and writing to the release happen here, away from the build job, which runs
-    # `npm ci` and with it code from every dependency.
+    # `pnpm install` and with it code from every dependency.
     permissions:
       contents: write # attach the files to the draft release and publish it
       id-token: write # sign the provenance attestation through Sigstore

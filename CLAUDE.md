@@ -21,7 +21,7 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 - **No new origins, no new permissions** without updating the README permission table and the
   store justification in the same PR. No analytics, no remote code.
 - **`src/lib/core` stays framework-free:** no Svelte, WXT, bits-ui or extension APIs, fetch is
-  injected. Enforced by ESLint (`no-restricted-imports`) and dependency-cruiser (`npm run dep:check`).
+  injected. Enforced by ESLint (`no-restricted-imports`) and dependency-cruiser (`pnpm dep:check`).
 - **The panel lives in a shadow root on someone else's page.** Tokens hang off `:host`, never
   `:root`; don't touch claude.ai's DOM, body styles or storage. No bits-ui Dialog/AlertDialog
   (they portal to `document.body` and lock its scroll); the panel is a native `<dialog>`.
@@ -41,10 +41,12 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 
 ## Dependencies
 
-- Exact versions only (`save-exact`), installs gated by `min-release-age=3` (npm ≥ 11.10,
-  enforced through `engines` + `engine-strict`).
-- Packages with install scripts must be approved in `package.json` `allowScripts`
-  (`npm approve-scripts <pkg>`).
+- pnpm 12, pinned in `packageManager`; its settings live in `pnpm-workspace.yaml`, not `.npmrc`.
+- Exact versions only (`saveExact`), installs gated by `minimumReleaseAge: 4320` (3 days,
+  re-checked against the lockfile on every install) and `trustPolicy: no-downgrade`. A
+  `trustPolicyExclude` entry names one exact version and needs the maintainer's sign-off.
+- Packages with install scripts must be approved in `pnpm-workspace.yaml` `allowBuilds`
+  (`pnpm approve-builds`).
 - Renovate's config has a shared block kept identical across the maintainer's repositories; this
   repo's own rules go at the end with a description starting `Repo-specific:`.
 
@@ -53,7 +55,7 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 - `main` is the only long-lived branch and accepts **rebase merges only**. Work on a short-lived
   branch and merge via PR (`gh pr merge <n> --rebase`).
 - Conventional Commits, enforced by commitlint; body/footer lines at most 100 characters.
-- The pre-commit hook (lefthook) runs prettier, `npm run check` and eslint --fix. Don't bypass it
+- The pre-commit hook (lefthook) runs prettier, `pnpm check` and eslint --fix. Don't bypass it
   with `--no-verify` unless the user explicitly says so.
 - CI (`.github/workflows/ci.yml`) is the source of truth: check, lint, dep:check, test, build,
   e2e. `release.yml` calls it on the release commit; release-only steps stay behind
@@ -64,7 +66,7 @@ commits, pull requests or issues. Notes about them belong in the untracked `CLAU
 
 ## Commands
 
-`npm run dev` (load `.output/chrome-mv3-dev` unpacked) · `npm run check` · `npm run lint` ·
-`npm run dep:check` · `npm run test` · `npm run test:e2e` (builds, then Playwright in `e2e/`) ·
-`npm run build` · `npm run zip` ·
-`npm run icons` (re-render `public/icon/` after editing `brand/*.svg`)
+`pnpm dev` (load `.output/chrome-mv3-dev` unpacked) · `pnpm check` · `pnpm lint` ·
+`pnpm dep:check` · `pnpm test` · `pnpm test:e2e` (builds, then Playwright in `e2e/`) ·
+`pnpm build` · `pnpm zip` ·
+`pnpm icons` (re-render `public/icon/` after editing `brand/*.svg`)

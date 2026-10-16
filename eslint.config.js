@@ -37,7 +37,7 @@ export default defineConfig(
 		},
 		linterOptions: {
 			// A disable directive that no longer suppresses anything is an error, not a
-			// silent warning: `npm run lint` passes no --max-warnings, so a stale directive
+			// silent warning: `pnpm lint` passes no --max-warnings, so a stale directive
 			// would otherwise rot unnoticed. Same for inline configs.
 			reportUnusedDisableDirectives: 'error',
 			reportUnusedInlineConfigs: 'error'
@@ -121,7 +121,7 @@ export default defineConfig(
 		// Module boundary: src/lib/core is plain TypeScript that runs anywhere (Node tests,
 		// the content script). It talks to claude.ai through an injected fetch and never
 		// touches Svelte, WXT or the extension APIs. Mirrored on the whole graph by
-		// dependency-cruiser (npm run dep:check).
+		// dependency-cruiser (pnpm dep:check).
 		files: ['src/lib/core/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-restricted-imports': [

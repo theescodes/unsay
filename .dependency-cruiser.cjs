@@ -14,7 +14,7 @@
  * Type-only imports are not flagged (`tsPreCompilationDeps: false`).
  *
  * `#imports` and the `@/` alias resolve through .wxt/tsconfig.json, so
- * `wxt prepare` must have run first (`npm ci` runs it through `prepare`).
+ * `wxt prepare` must have run first (`pnpm install` runs it through `prepare`).
  *
  * @type {import('dependency-cruiser').IConfiguration}
  */
