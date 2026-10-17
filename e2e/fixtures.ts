@@ -260,15 +260,18 @@ export class ClaudeTab {
 }
 
 export const test = base.extend<{ claude: ClaudeTab }>({
-	context: async ({ playwright }, use) => {
+	context: async ({ playwright, viewport, deviceScaleFactor }, use) => {
 		if (!existsSync(path.join(EXTENSION, 'manifest.json'))) {
 			throw new Error(`No build in ${EXTENSION}: run \`pnpm build\` first.`);
 		}
 		// The `chromium` channel is the full browser in its new headless mode, which runs
-		// extensions; the default headless shell doesn't.
+		// extensions; the default headless shell doesn't. A persistent context ignores
+		// `test.use()` unless its options are passed on; the store screenshots set them.
 		const context = await playwright.chromium.launchPersistentContext('', {
 			channel: 'chromium',
-			args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`]
+			args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`],
+			viewport,
+			deviceScaleFactor
 		});
 		await use(context);
 		await context.unrouteAll({ behavior: 'ignoreErrors' });

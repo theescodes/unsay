@@ -5,7 +5,7 @@
 
 	import Button from '../components/Button.svelte';
 	import StepLayout from '../components/StepLayout.svelte';
-	import { chatTitle, count, groupByMonth, lastActiveLabel } from '../format';
+	import { chatTitle, count, formatNumber, groupByMonth, lastActiveLabel } from '../format';
 	import type { SweepSession } from '../session.svelte';
 
 	interface Props {
@@ -28,7 +28,10 @@
 <StepLayout>
 	<div class="flex flex-wrap items-center justify-between gap-2">
 		<p class="text-sm" aria-live="polite">
-			<strong>{session.selected.length}</strong> of {count(session.matches.length, 'chat')} selected
+			<strong>{formatNumber(session.selected.length)}</strong> of {count(
+				session.matches.length,
+				'chat'
+			)} selected
 		</p>
 		<div class="flex gap-1">
 			<Button variant="ghost" size="sm" onclick={() => session.setSelected(session.matches, true)}>
