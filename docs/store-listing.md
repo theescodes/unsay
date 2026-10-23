@@ -10,6 +10,9 @@ Upload `unsay-X.Y.Z-chrome.zip` from the [GitHub release](https://github.com/the
 of that version: the zip built and attested in CI, never a local build. The store's copy then has
 the same files as the release, which anyone can check against the tagged source.
 
+Only the first version is uploaded by hand. After that, CI uploads each release once the
+maintainer approves it: see [store-publishing.md](store-publishing.md).
+
 ## Store listing
 
 | Field          | Value                                                                                                    |

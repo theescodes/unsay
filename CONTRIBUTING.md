@@ -80,6 +80,10 @@ commit messages:
 - The [release workflow](.github/workflows/release.yml) then runs the full CI on the release
   commit, packs the zip, attests it, attaches it to the draft release with `SHA256SUMS` and
   publishes it. Published releases are immutable.
+- Once the store item exists, the release workflow then hands the zip to the
+  [store workflow](.github/workflows/store.yml), which uploads it to the Chrome Web Store and
+  submits it for review after the maintainer approves the run. See
+  [docs/store-publishing.md](docs/store-publishing.md).
 - Only the release app creates `v*` tags; a tag ruleset blocks everyone else from creating, moving
   or deleting them. Don't tag by hand, and don't edit `CHANGELOG.md` by hand.
 - While the version is `0.x`, `feat` bumps the minor version, `fix` the patch, and a breaking change
