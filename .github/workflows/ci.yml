@@ -32,7 +32,7 @@ env:
   # Pinned exactly, never a bare `24`: ESLint's result cache keys on the node
   # version, so a bare major that resolves to a different patch during runner
   # image rollouts invalidates the cache. Renovate bumps it (customManagers).
-  NODE_VERSION: '24.21.0'
+  NODE_VERSION: '24.22.1'
 
 jobs:
   ci:
