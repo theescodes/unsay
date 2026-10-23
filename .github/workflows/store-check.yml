@@ -1,0 +1,44 @@
+name: Store check
+
+on:
+  # Weekly, and by hand after a submission went live: is the store still serving the release?
+  schedule:
+    - cron: '41 5 * * 2'
+  workflow_dispatch:
+
+# Least privilege: the job below asks for exactly what it needs.
+permissions: {}
+
+jobs:
+  compare:
+    # Skipped until the store item exists (docs/store-publishing.md).
+    if: vars.CWS_ITEM_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # check out the script, download the release
+      attestations: read # verify the release zip's build attestation
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      # Plain Node with no dependencies, so nothing is installed.
+      - run: node scripts/compare-store.mjs "$CWS_ITEM_ID" "$RUNNER_TEMP/store"
+        env:
+          CWS_ITEM_ID: ${{ vars.CWS_ITEM_ID }}
+
+      # The files matched; this ties the release zip, and so the store's copy, to the tagged
+      # commit and release.yml.
+      - name: Verify the release zip
+        run: |
+          zip=$(ls "$RUNNER_TEMP"/store/unsay-*-chrome.zip)
+          version=${zip##*/unsay-}
+          version=${version%-chrome.zip}
+          gh release verify-asset "v$version" "$zip"
+          gh attestation verify "$zip" --repo "$GH_REPO" \
+            --signer-workflow "$GH_REPO/.github/workflows/release.yml"

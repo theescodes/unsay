@@ -117,3 +117,20 @@ jobs:
         run: |
           gh release upload "$TAG" "$ZIP" SHA256SUMS "$ZIP.sigstore.json" --clobber
           gh release edit "$TAG" --draft=false
+
+  # Hands the release to store.yml, which waits for approval before it submits to the Chrome Web
+  # Store. A run of its own, because a release published with GITHUB_TOKEN starts no workflow.
+  store:
+    needs: [release-please, publish]
+    if: vars.CWS_ITEM_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write # start store.yml
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.release-please.outputs.tag }}
+
+    steps:
+      - run: gh workflow run store.yml --ref main -f tag="$TAG"

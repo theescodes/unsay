@@ -1,0 +1,140 @@
+name: Store
+
+on:
+  # release.yml starts this after it publishes a release. Run it by hand (on main) to submit a
+  # release again, for example after a rejected review.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release to submit, e.g. v1.0.1
+        required: true
+        type: string
+
+# Least privilege: the job below asks for exactly what it needs.
+permissions: {}
+
+# Its own workflow, so a submission waiting days for approval never holds up release.yml.
+concurrency:
+  group: store
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    # Skipped until the store item exists and the repository variables from
+    # docs/store-publishing.md are set.
+    if: vars.CWS_ITEM_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The environment's required reviewer is the gate: nothing reaches the store until someone
+    # approves this run. Google only issues a token to jobs in this environment of this repository.
+    environment: chrome-web-store
+    permissions:
+      contents: read # download the release
+      attestations: read # verify its build attestation
+      id-token: write # exchanged for a short-lived Google token; no store credential is stored
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+      ITEM: publishers/${{ vars.CWS_PUBLISHER_ID }}/items/${{ vars.CWS_ITEM_ID }}
+
+    steps:
+      - name: Download the release zip
+        run: |
+          if ! [[ "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::'$TAG' is not a release tag like v1.2.3"
+            exit 1
+          fi
+          version=${BASH_REMATCH[1]}
+          zip=unsay-$version-chrome.zip
+          gh release download "$TAG" --pattern "$zip" --dir dist
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "ZIP=dist/$zip" >> "$GITHUB_ENV"
+
+      # The store gets exactly the published file: release.yml built and attested it from the
+      # tagged commit, and the immutable release vouches that it is unchanged since.
+      - name: Verify the zip
+        run: |
+          gh release verify-asset "$TAG" "$ZIP"
+          gh attestation verify "$ZIP" --repo "$GH_REPO" \
+            --signer-workflow "$GH_REPO/.github/workflows/release.yml"
+          actual=$(unzip -p "$ZIP" manifest.json | jq -r .version)
+          if [ "$actual" != "$VERSION" ]; then
+            echo "::error::$ZIP has version '$actual' in its manifest, expected $VERSION"
+            exit 1
+          fi
+
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        id: google
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+          access_token_lifetime: 900s
+          create_credentials_file: false
+          export_environment_variables: false
+
+      # Uploading only stages the package; the store keeps showing the current version until the
+      # submission below passes review.
+      - name: Upload to the Chrome Web Store
+        env:
+          TOKEN: ${{ steps.google.outputs.access_token }}
+        run: |
+          api=https://chromewebstore.googleapis.com
+          curl -sS --fail-with-body -X POST -H "Authorization: Bearer $TOKEN" \
+            -T "$ZIP" "$api/upload/v2/$ITEM:upload" > upload.json
+          jq . upload.json
+          state=$(jq -r .uploadState upload.json)
+          for _ in $(seq 30); do
+            case "$state" in
+              SUCCEEDED) break ;;
+              IN_PROGRESS | UPLOAD_IN_PROGRESS) sleep 10 ;;
+              *)
+                echo "::error::Upload ended in state '$state'"
+                exit 1
+                ;;
+            esac
+            curl -sS --fail-with-body -H "Authorization: Bearer $TOKEN" \
+              "$api/v2/$ITEM:fetchStatus" > status.json
+            state=$(jq -r .lastAsyncUploadState status.json)
+          done
+          if [ "$state" != SUCCEEDED ]; then
+            echo "::error::Upload still in state '$state' after five minutes"
+            exit 1
+          fi
+          # A synchronous upload names the version it read from the manifest; an async one is
+          # confirmed after the submission instead.
+          uploaded=$(jq -r '.crxVersion // empty' upload.json)
+          if [ -n "$uploaded" ] && [ "$uploaded" != "$VERSION" ]; then
+            echo "::error::The store read version '$uploaded' from the upload, expected $VERSION"
+            exit 1
+          fi
+
+      # blockOnWarnings: a warning stops the submission rather than going to review unnoticed.
+      - name: Submit for review
+        env:
+          TOKEN: ${{ steps.google.outputs.access_token }}
+        run: |
+          curl -sS --fail-with-body -X POST -H "Authorization: Bearer $TOKEN" \
+            -H 'Content-Type: application/json' \
+            -d '{"publishType": "DEFAULT_PUBLISH", "blockOnWarnings": true}' \
+            "https://chromewebstore.googleapis.com/v2/$ITEM:publish" > publish.json
+          jq . publish.json
+          state=$(jq -r .state publish.json)
+          echo "::notice::$TAG submitted, store state: $state"
+          case "$state" in
+            PENDING_REVIEW | STAGED | PUBLISHED) ;;
+            *)
+              echo "::error::Unexpected store state '$state'"
+              exit 1
+              ;;
+          esac
+          curl -sS --fail-with-body -H "Authorization: Bearer $TOKEN" \
+            "https://chromewebstore.googleapis.com/v2/$ITEM:fetchStatus" > status.json
+          jq . status.json
+          versions='[.submittedItemRevisionStatus, .publishedItemRevisionStatus][]?.distributionChannels[]?.crxVersion'
+          if ! jq -e --arg v "$VERSION" "[$versions] | index(\$v)" status.json > /dev/null; then
+            echo "::error::The store's submitted revision is not version $VERSION"
+            exit 1
+          fi

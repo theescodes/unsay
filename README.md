@@ -83,6 +83,15 @@ immutable: once published, their files and tag can't be changed. The release als
 `SHA256SUMS` and the attestation bundle (`.sigstore.json`), for checking with
 `gh attestation verify … --bundle` without GitHub's attestation API.
 
+The Chrome Web Store gets that same zip. A weekly [check](.github/workflows/store-check.yml)
+compares the store's package with the release of its version, file by file; to run it yourself
+(needs `unzip`):
+
+```sh
+node scripts/compare-store.mjs <store item id> <dir>
+gh attestation verify <dir>/unsay-X.Y.Z-chrome.zip --repo theescodes/unsay
+```
+
 ## Install from source
 
 ```sh
