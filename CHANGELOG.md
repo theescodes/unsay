@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.0](https://github.com/theescodes/unsay/compare/v0.2.0...v1.0.0) (2026-10-23)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @lucide/svelte to v1.60.0 ([ae9849f](https://github.com/theescodes/unsay/commit/ae9849ffe07d35fb9e0b3c2e6df68ca12703ed1b))
+* **ui:** group the digits of the match and selection counts ([4ec6fa4](https://github.com/theescodes/unsay/commit/4ec6fa4fde18203ab96aa9da3af38354dfe13a0e))
+
+
+### Documentation
+
+* add the privacy policy and the Chrome Web Store listing ([e7ad38a](https://github.com/theescodes/unsay/commit/e7ad38a3c1d52845c9189c135e3689f2c9afffc3))
+
 ## [0.2.0](https://github.com/theescodes/unsay/compare/v0.1.1...v0.2.0) (2026-10-15)
 
 
