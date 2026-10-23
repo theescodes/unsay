@@ -28,6 +28,10 @@ if (!/^[a-p]{32}$/.test(itemId ?? '') || !dir) {
 	process.exit(2);
 }
 
+/**
+ * @param {string} url
+ * @param {string} file
+ */
 async function download(url, file) {
 	const response = await fetch(url);
 	if (!response.ok) throw new Error(`${url} answered ${response.status}`);
@@ -36,7 +40,11 @@ async function download(url, file) {
 	return bytes;
 }
 
-/** A CRX3 file is "Cr24", the format version, the header length, the header, then a plain zip. */
+/**
+ * A CRX3 file is "Cr24", the format version, the header length, the header, then a plain zip.
+ *
+ * @param {Buffer} crx
+ */
 function zipFromCrx(crx) {
 	if (crx.toString('latin1', 0, 4) !== 'Cr24' || crx.readUInt32LE(4) !== 3) {
 		throw new Error('The store did not send a CRX3 package');
@@ -44,12 +52,17 @@ function zipFromCrx(crx) {
 	return crx.subarray(12 + crx.readUInt32LE(8));
 }
 
+/**
+ * @param {string} zip
+ * @param {string} into
+ */
 async function unpack(zip, into) {
 	await rm(into, { recursive: true, force: true });
 	await mkdir(into, { recursive: true });
 	execFileSync('unzip', ['-q', zip, '-d', into]);
 }
 
+/** @param {string} root */
 async function listFiles(root) {
 	const entries = await readdir(root, { recursive: true, withFileTypes: true });
 	return entries
