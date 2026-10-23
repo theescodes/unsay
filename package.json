@@ -59,7 +59,7 @@
 		"wxt": "0.21.4"
 	},
 	"dependencies": {
-		"@lucide/svelte": "1.55.0",
+		"@lucide/svelte": "1.60.0",
 		"zod": "4.6.7"
 	}
 }
