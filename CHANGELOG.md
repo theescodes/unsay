@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/theescodes/unsay/compare/v1.0.0...v1.0.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **deps:** update dependency @lucide/svelte to v1.61.0 ([2cb52a7](https://github.com/theescodes/unsay/commit/2cb52a777400ef31aec7906bdcd71cd77c61008f))
+
 ## [1.0.0](https://github.com/theescodes/unsay/compare/v0.2.0...v1.0.0) (2026-10-23)
 
 
