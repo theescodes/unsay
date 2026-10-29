@@ -44,7 +44,7 @@
 		"eslint-plugin-simple-import-sort": "14.0.0",
 		"eslint-plugin-svelte": "3.23.1",
 		"globals": "17.13.0",
-		"lefthook": "2.2.1",
+		"lefthook": "2.2.2",
 		"playwright": "1.64.1",
 		"postcss": "8.5.31",
 		"prettier": "3.9.10",
@@ -54,7 +54,7 @@
 		"svelte-check": "4.7.7",
 		"tailwindcss": "4.3.3",
 		"typescript": "6.0.3",
-		"typescript-eslint": "8.72.0",
+		"typescript-eslint": "8.72.1",
 		"vite": "8.3.5",
 		"vitest": "5.0.5",
 		"wxt": "0.21.4"
