@@ -228,6 +228,24 @@ describe('runSweep: failures', () => {
 		expect(remaining(fake)).toEqual([id(2)]);
 	});
 
+	it('does not take an AbortError for a cancel when nobody cancelled', async () => {
+		// As in a tester's report (2026-11-13, a browser without userAgentData): the batch
+		// answered 500, its retry ended in an AbortError, and the run said "cancelled".
+		const fake = claude(3);
+		fake.fail('POST', DELETE_MANY, 500);
+		let posts = 0;
+		const abortingRetry: typeof fetch = (input, init) =>
+			init?.method === 'POST' && ++posts === 2
+				? Promise.reject(new DOMException('Fetch is aborted', 'AbortError'))
+				: fake.fetch(input, init);
+		const result = await sweep(fake, range(1, 3).map(target), {
+			api: createClaudeApi(abortingRetry)
+		});
+
+		expect(result.cancelled).toBe(false);
+		expectOutcomes(result, { ...none, deleted: [1, 2, 3] });
+	});
+
 	it('keeps going when a single delete keeps failing', async () => {
 		const fake = claude(3);
 		fake.fail('POST', DELETE_MANY, 400);

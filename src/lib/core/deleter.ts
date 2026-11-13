@@ -77,6 +77,10 @@ export async function runSweep(options: SweepOptions): Promise<SweepResult> {
 	const throwIfCancelled = () => {
 		if (signal?.aborted) throw new DOMException('Cancelled', 'AbortError');
 	};
+	// Only the user's cancel counts as one. Any other AbortError (a browser that reports a
+	// timeout that way) is a failure like the rest, settled by the fallback and the verification;
+	// taken for a cancel, it would report the chats left over as "not touched".
+	const isCancel = (error: unknown) => isAbortError(error) && signal?.aborted === true;
 
 	// 1. Re-read the list: only what still exists, unchanged, is deleted.
 	onProgress?.({ phase: 'checking', done: 0, total: targets.length });
@@ -85,7 +89,7 @@ export async function runSweep(options: SweepOptions): Promise<SweepResult> {
 		const list = await withRetry(() => api.listConversations(orgId, { signal }), retry);
 		fresh = new Map(list.map((c) => [c.uuid, c]));
 	} catch (error) {
-		if (!isAbortError(error)) throw error;
+		if (!isCancel(error)) throw error;
 		for (const target of targets) outcomes.set(target.uuid, 'not-attempted');
 		return { outcomes, cancelled: true };
 	}
@@ -112,7 +116,7 @@ export async function runSweep(options: SweepOptions): Promise<SweepResult> {
 			} catch (error) {
 				// Anything but a cancel (a 404 for a chat that is gone already, a 5xx that outlasted
 				// the retries) is settled by the verification.
-				if (isAbortError(error)) throw error;
+				if (isCancel(error)) throw error;
 			}
 		});
 	}
@@ -132,13 +136,13 @@ export async function runSweep(options: SweepOptions): Promise<SweepResult> {
 			try {
 				await withRetry(() => api.deleteMany(orgId, batch), retry);
 			} catch (error) {
-				if (isAbortError(error)) throw error;
+				if (isCancel(error)) throw error;
 				await deleteSingly(batch);
 			}
 			for (const id of batch) attempted.add(id);
 		}
 	} catch (error) {
-		if (!isAbortError(error)) throw error;
+		if (!isCancel(error)) throw error;
 		cancelled = true;
 	}
 
@@ -151,7 +155,7 @@ export async function runSweep(options: SweepOptions): Promise<SweepResult> {
 		try {
 			await deleteSingly(retryable);
 		} catch (error) {
-			if (!isAbortError(error)) throw error;
+			if (!isCancel(error)) throw error;
 			cancelled = true;
 		}
 		remaining = await stillThere(main);
@@ -169,7 +173,7 @@ export async function runSweep(options: SweepOptions): Promise<SweepResult> {
 			try {
 				await deleteSingly([last]);
 			} catch (error) {
-				if (!isAbortError(error)) throw error;
+				if (!isCancel(error)) throw error;
 				cancelled = true;
 			}
 		}

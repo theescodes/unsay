@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createClaudeApi, PAGE_SIZE, parseRetryAfter } from './api';
 import { ApiChangedError, HttpError } from './errors';
@@ -141,6 +141,61 @@ describe('requests', () => {
 			}
 		]);
 		await expect(api.deleteOne(ORG, id(2))).rejects.toThrow(HttpError);
+	});
+});
+
+describe('timeouts', () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	/** Gives the request a timeout the test fires, instead of waiting for the real one. */
+	function controlledTimeout(): () => void {
+		const timeout = new AbortController();
+		vi.spyOn(AbortSignal, 'timeout').mockReturnValue(timeout.signal);
+		return () => timeout.abort(new DOMException('signal timed out', 'TimeoutError'));
+	}
+
+	const webkitAbortError = () => new DOMException('Fetch is aborted', 'AbortError');
+
+	/** Like WebKit's fetch: no answer, and any abort rejects with a plain AbortError. */
+	const webkitNoAnswer: typeof fetch = (_input, init) =>
+		new Promise((_resolve, reject) => {
+			init?.signal?.addEventListener('abort', () => reject(webkitAbortError()));
+		});
+
+	it('reports a timeout as a TimeoutError where fetch calls it an AbortError', async () => {
+		const fire = controlledTimeout();
+		const deleting = createClaudeApi(webkitNoAnswer).deleteMany(ORG, [id(1)]);
+		fire();
+		await expect(deleting).rejects.toMatchObject({ name: 'TimeoutError' });
+	});
+
+	it('reports a body that stalls as a timeout, not as an answer it cannot read', async () => {
+		const fire = controlledTimeout();
+		const stalling: typeof fetch = (_input, init) =>
+			Promise.resolve(
+				new Response(
+					new ReadableStream({
+						start(controller) {
+							init?.signal?.addEventListener('abort', () => controller.error(webkitAbortError()));
+						}
+					})
+				)
+			);
+		const listing = createClaudeApi(stalling).listOrganizations();
+		fire();
+		await expect(listing).rejects.toMatchObject({ name: 'TimeoutError' });
+	});
+
+	it("still reports the user's cancel as an AbortError", async () => {
+		controlledTimeout();
+		const user = new AbortController();
+		const listing = createClaudeApi(webkitNoAnswer).listConversations(ORG, {
+			signal: user.signal
+		});
+		user.abort();
+		await expect(listing).rejects.toMatchObject({ name: 'AbortError' });
 	});
 });
 
