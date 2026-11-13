@@ -119,6 +119,9 @@ No response had a header whose name contains `rate` or `retry`. No 429 was provo
 one looks like is unknown. The deleter can only react to a 429 when it comes, and honours
 `Retry-After` should one ever carry it.
 
+The 500 from `delete_many` in a tester's report (2026-11-13) carried `x-should-retry`; the report
+keeps header names only, so its value is unknown.
+
 ## Deleting
 
 ### `delete_many`
@@ -131,6 +134,14 @@ Body `{ "conversation_uuids": [...] }`.
 - The response body was not captured (the script died before printing its report), so the
   extension ignores it and decides every outcome by re-reading the list.
 - The maximum batch size is unknown. The MIT script sends 100; the extension sends 50.
+- **A failed batch can be partly done.** In a tester's run on 2026-11-13 (one batch of about
+  42), `delete_many` answered 500 after 1.3 s, yet 15 of the batch's chats were gone afterwards.
+  The error body had the fields `type`, `error.type`, `error.message` and `request_id`.
+- The retry of that batch got no answer and ended in an `AbortError`. A delete carries no cancel
+  signal, so that was the 20 s timeout, which WebKit reports as a plain `AbortError` (the
+  report's browser had no `navigator.userAgentData`, so it was likely not Chromium). Version
+  1.0.0 took it for the user's cancel and called the rest of the batch "not touched";
+  `createClaudeApi` now turns it into a `TimeoutError`, which is retried.
 
 ### Single `DELETE`
 

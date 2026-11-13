@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ApiChangedError, HttpError } from './errors';
+import { ApiChangedError, HttpError, isAbortError } from './errors';
 import {
 	type Conversation,
 	conversationSchema,
@@ -36,29 +36,42 @@ export function createClaudeApi(
 	fetchImpl: typeof fetch,
 	baseUrl = 'https://claude.ai/api'
 ): ClaudeApi {
-	async function request(path: string, init: RequestInit = {}): Promise<Response> {
+	/** The body of a 2xx answer, as text. */
+	async function request(path: string, init: RequestInit = {}): Promise<string> {
 		const timeout = AbortSignal.timeout(TIMEOUT_MS);
-		const response = await fetchImpl(`${baseUrl}${path}`, {
-			...init,
-			credentials: 'include',
-			headers: { 'content-type': 'application/json' },
-			signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
-		});
-		if (!response.ok) {
-			throw new HttpError(
-				response.status,
-				path,
-				parseRetryAfter(response.headers.get('retry-after'))
-			);
+		try {
+			const response = await fetchImpl(`${baseUrl}${path}`, {
+				...init,
+				credentials: 'include',
+				headers: { 'content-type': 'application/json' },
+				signal: init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
+			});
+			if (!response.ok) {
+				throw new HttpError(
+					response.status,
+					path,
+					parseRetryAfter(response.headers.get('retry-after'))
+				);
+			}
+			// Read under the same timeout: an answer whose body stalls is a timeout too, not
+			// "not JSON".
+			return await response.text();
+		} catch (error) {
+			// WebKit rejects a timed-out fetch with a plain AbortError rather than the signal's
+			// TimeoutError (Chromium passes the reason on). To the deleter an AbortError is the
+			// user's cancel, so a timeout taken for one ended a tester's run as "cancelled".
+			if (isAbortError(error) && timeout.aborted && !init.signal?.aborted) {
+				throw new DOMException(`no answer within ${TIMEOUT_MS / 1000} s: ${path}`, 'TimeoutError');
+			}
+			throw error;
 		}
-		return response;
 	}
 
 	async function getJson<T>(path: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
-		const response = await request(path, { signal });
+		const text = await request(path, { signal });
 		let body: unknown;
 		try {
-			body = await response.json();
+			body = JSON.parse(text);
 		} catch {
 			throw new ApiChangedError(path, 'the response is not JSON');
 		}
