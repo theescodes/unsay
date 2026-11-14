@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/theescodes/unsay/compare/v1.0.0...v1.0.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **core:** report a timeout as a timeout, not as the user's cancel ([7139716](https://github.com/theescodes/unsay/commit/713971610ae1217f4d12c30623bddf74348c3f20))
+* **deps:** update dependency @lucide/svelte to v1.61.0 ([2cb52a7](https://github.com/theescodes/unsay/commit/2cb52a777400ef31aec7906bdcd71cd77c61008f))
+
 ## [1.0.0](https://github.com/theescodes/unsay/compare/v0.2.0...v1.0.0) (2026-10-23)
 
 
